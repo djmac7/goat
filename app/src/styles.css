@@ -1,0 +1,447 @@
+/* BUILD THE GOAT — ESPN-inspired LIGHT theme. White canvas, ESPN red accent, Inter type,
+   bold black numbers, thin gray borders, uppercase gray labels. Mobile-first. */
+
+:root {
+  /* white app frame on a gray page; cards are WHITE with a soft shadow (set per-component) */
+  --page: #e9eaec;
+  --bg: #ffffff;
+  --surface: #ffffff;        /* cards */
+  --surface2: #edeff1;       /* inset chips/rows on a white card */
+  --surface3: #f4f5f7;       /* open slots */
+  --border: #dcdee2;
+  --border-strong: #c8cbd1;
+  --text: #1d1d20;
+  --muted: #6f7072;
+  --faint: #a2a5ac;
+  --accent: #d50a0a;         /* ESPN red */
+  --accent-dim: #a80808;
+  --link: #0b6cba;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.10);
+  --frame: 460px;
+
+  /* rating tier ramp (shown only at the reveal/result) — readable on white */
+  --t-elite: #0b7a3b;
+  --t-great: #2f9e44;
+  --t-good: #1971c2;
+  --t-mid: #495057;
+  --t-low: #868e96;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body, #root { height: 100%; margin: 0; }
+/* always reserve the scrollbar gutter so views that scroll (roster) and views that don't
+   (spinner) keep the exact same width — no left/right shift between them */
+html { scrollbar-gutter: stable; }
+body {
+  background: var(--page);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-feature-settings: 'tnum' 1, 'cv05' 1;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+#root { display: flex; justify-content: center; }
+
+.app-frame {
+  width: 100%;
+  max-width: var(--frame);
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+}
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 16px 24px;
+  animation: fade-in 0.2s ease both;
+}
+@keyframes fade-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
+/* ---------- boot / lazy loader ---------- */
+.boot { width: 100%; min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; color: var(--muted); }
+.boot__mark { display: flex; flex-direction: column; align-items: center; line-height: 0.86; margin-bottom: 4px; }
+.boot__build { font-size: 16px; font-weight: 800; letter-spacing: 0.26em; color: var(--text); padding-left: 0.26em; }
+.boot__goat { font-size: 56px; font-weight: 900; letter-spacing: -0.01em; color: var(--accent); }
+.boot__title { font-weight: 600; font-size: 13px; letter-spacing: 0.04em; }
+.boot__spinner { width: 30px; height: 30px; border-radius: 50%; border: 3px solid var(--border); border-top-color: var(--accent); animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.boot--error { color: var(--accent); padding: 24px; }
+.boot__msg { white-space: pre-wrap; font-size: 12px; color: var(--muted); max-width: 90%; }
+
+/* ---------- buttons ---------- */
+.btn-primary, .btn-secondary, .btn-ghost {
+  border-radius: 8px; font-weight: 700; letter-spacing: 0.01em; font-family: inherit;
+  padding: 14px 18px; font-size: 15px; cursor: pointer; width: 100%; border: 1px solid transparent;
+  transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-secondary { background: var(--surface); color: var(--text); border-color: var(--border-strong); }
+.btn-ghost { background: var(--surface); color: var(--faint); border: 1px dashed var(--border-strong); }
+.btn-primary:active, .btn-secondary:active { transform: scale(0.98); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+/* keyboard-shortcut hint badge inside a button */
+.kbd {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px;
+  margin-left: 7px; padding: 0 5px; border-radius: 4px; font-size: 11px; font-weight: 700; font-family: inherit;
+  background: rgba(255, 255, 255, 0.22); border: 1px solid rgba(255, 255, 255, 0.35); vertical-align: middle;
+}
+.btn-secondary .kbd { background: var(--surface2); border-color: var(--border-strong); color: var(--muted); }
+
+/* ---------- title ---------- */
+.title-screen { align-items: center; justify-content: center; text-align: center; gap: 20px; }
+.title-mark { display: flex; flex-direction: column; line-height: 0.9; }
+.title-mark__build { font-size: 24px; font-weight: 800; letter-spacing: 0.26em; color: var(--text); padding-left: 0.26em; }
+.title-mark__goat { font-size: 88px; font-weight: 900; letter-spacing: -0.01em; color: var(--accent); }
+.title-pitch { color: var(--muted); font-size: 15px; line-height: 1.5; max-width: 330px; margin: 0; }
+.title-pitch b { color: var(--text); font-weight: 700; }
+.title-modes { display: flex; gap: 8px; }
+.mode-toggle { background: var(--surface); color: var(--muted); border: 1px solid var(--border-strong); border-radius: 999px; padding: 8px 16px; font-weight: 600; font-size: 13px; cursor: pointer; font-family: inherit; }
+.mode-toggle.active { background: var(--text); color: #fff; border-color: var(--text); }
+.btn-start {
+  margin-top: 4px; width: 78%; border: none; border-radius: 10px; cursor: pointer; font-family: inherit;
+  background: var(--accent); color: #fff; font-weight: 900; font-size: 28px; letter-spacing: 0.06em;
+  padding: 16px; display: flex; flex-direction: column; gap: 2px; align-items: center;
+  box-shadow: var(--shadow); transition: transform 0.1s ease, background 0.15s ease;
+}
+.btn-start:active { transform: scale(0.98); }
+.btn-start__sub { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; opacity: 0.85; }
+.source-badge { font-size: 11px; color: var(--accent); margin-top: 6px; }
+
+/* ---------- game layout ---------- */
+/* bound the game screen to the viewport so ONLY the player list scrolls — the header,
+   GOAT card, team/year banner and sort row above it stay pinned. */
+.game-screen { padding-top: 12px; gap: 12px; height: 100vh; height: 100dvh; overflow: hidden; }
+.game-top { display: flex; flex-direction: column; gap: 10px; }
+.spin-counter { display: flex; align-items: baseline; gap: 6px; justify-content: center; }
+.spin-counter__now { font-weight: 800; font-size: 16px; letter-spacing: 0.1em; color: var(--accent); }
+.spin-counter__of { font-size: 12px; color: var(--muted); letter-spacing: 0.08em; }
+.game-bottom { flex: 1; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+
+/* ---------- selected-players toggle (mobile) ---------- */
+.goat-toggle {
+  display: flex; align-items: center; gap: 8px; width: 100%; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 9px; padding: 9px 12px; cursor: pointer;
+  font-family: inherit; box-shadow: var(--shadow);
+}
+.goat-toggle__label { font-weight: 800; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text); flex: 0 0 auto; }
+.goat-toggle__faces { display: flex; gap: 4px; margin-left: auto; }
+.goat-toggle__faces .avatar { width: 26px; height: 26px; border-radius: 50%; }
+.goat-toggle__ph { width: 26px; height: 26px; border-radius: 50%; background: var(--surface2); border: 1px dashed var(--border-strong); flex: 0 0 auto; }
+.goat-toggle__chev { color: var(--muted); transition: transform 0.18s ease; }
+.goat-toggle.open .goat-toggle__chev { transform: rotate(180deg); }
+.goat-card-wrap { display: none; }
+.goat-card-wrap.open { display: block; margin-top: 8px; }
+
+/* ---------- GOAT card ---------- */
+.goat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px; box-shadow: var(--shadow); }
+.goat-card__slots { display: flex; flex-direction: column; gap: 5px; }
+.goat-card.compact .slot { padding: 8px 11px; }
+
+.slot {
+  position: relative; border-radius: 7px; padding: 9px 12px; min-height: 50px;
+  background: var(--surface2); border: 1px solid var(--border); overflow: hidden;
+  display: flex; align-items: center; gap: 10px;
+}
+.slot.open { background: var(--surface3); border-style: dashed; }
+.slot.filled { background: var(--surface); box-shadow: var(--shadow); }
+.slot.filled::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--team); }
+.slot__label { font-size: 9.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); width: 78px; flex: 0 0 auto; }
+.slot__fill { flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.slot__who { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
+.slot__name { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slot__team { font-size: 10px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slot__rating { font-size: 20px; font-weight: 900; line-height: 1; color: var(--text); flex: 0 0 auto; }
+.slot__await { font-size: 11px; color: var(--faint); font-weight: 600; }
+.slot.open { animation: pulse-border 2.8s ease-in-out infinite; }
+@keyframes pulse-border { 0%, 100% { border-color: var(--border); } 50% { border-color: var(--border-strong); } }
+.slot.just-locked { animation: slot-pop 0.45s ease; }
+@keyframes slot-pop { 0% { transform: scale(1); } 35% { transform: scale(1.05); box-shadow: 0 0 0 2px var(--accent); } 100% { transform: scale(1); } }
+.slot.shown .slot__rating { animation: rating-in 0.3s ease both; }
+@keyframes rating-in { from { transform: translateY(7px) scale(0.7); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.goat-card__total { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; padding: 8px 12px; background: var(--surface2); border-radius: 7px; }
+.goat-card__total-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: var(--muted); }
+.goat-card__total-value { font-size: 28px; font-weight: 900; color: var(--accent); line-height: 1; }
+.goat-card__total-ceil { font-size: 16px; font-weight: 700; color: var(--muted); }
+
+/* rating tier colors */
+.slot__rating.tier-elite, .rrow__rating.tier-elite, .goat-card__total-value.tier-elite { color: var(--t-elite); }
+.slot__rating.tier-great, .rrow__rating.tier-great, .goat-card__total-value.tier-great { color: var(--t-great); }
+.slot__rating.tier-good, .rrow__rating.tier-good, .goat-card__total-value.tier-good { color: var(--t-good); }
+.slot__rating.tier-mid, .rrow__rating.tier-mid, .goat-card__total-value.tier-mid { color: var(--t-mid); }
+.slot__rating.tier-low, .rrow__rating.tier-low, .goat-card__total-value.tier-low { color: var(--t-low); }
+
+/* ---------- team × year reel ---------- */
+.spin-stage { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 16px; padding-top: 8px; }
+.spin-stage__title { font-size: 12px; letter-spacing: 0.26em; color: var(--muted); font-weight: 700; text-transform: uppercase; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0.45; } }
+.tyreel { position: relative; display: flex; gap: 10px; width: 100%; max-width: 400px; border-radius: 16px; background: var(--surface); padding: 12px; box-shadow: var(--shadow); }
+.tyreel-col { position: relative; overflow: hidden; border-radius: 10px; }
+.tyreel-col.team { flex: 1.7; }
+.tyreel-col.year { flex: 1; }
+.tyreel-strip { transition: transform 3.4s cubic-bezier(0.1, 0.6, 0.05, 1); will-change: transform; }
+.tyreel-strip.static { transition: none; }
+.tyreel__item { height: 92px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 900; gap: 6px; }
+/* rich, glossy team tile: a faint top highlight down to a slightly deeper base — keeps the
+   color saturated (no white-wash) so the reel reads like polished stacked cards */
+.tyreel__item.team {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--team) 86%, #fff) 0%,
+    var(--team) 48%,
+    color-mix(in srgb, var(--team) 88%, #000) 100%);
+}
+/* logo on a clean white chip so it pops on any team color (incl. same-hue logos) */
+.tyreel__logo-chip { width: 44px; height: 44px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; padding: 7px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22); }
+.tyreel__logo { width: 100%; height: 100%; object-fit: contain; }
+.tyreel__name { font-size: 12px; font-weight: 800; letter-spacing: 0.02em; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.18); }
+.tyreel__item.year { font-size: 36px; color: var(--text); background: var(--surface2); }
+
+/* ---------- header (spin counter + rerolls, top-right) ---------- */
+.game-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.reroll-group { display: flex; gap: 6px; }
+.reroll-mini {
+  display: inline-flex; align-items: center; gap: 5px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 999px; padding: 6px 11px;
+  font-size: 12px; font-weight: 700; color: var(--text); cursor: pointer; font-family: inherit;
+  box-shadow: var(--shadow);
+}
+.reroll-mini svg { color: var(--accent); flex: 0 0 auto; }
+.reroll-mini:disabled { opacity: 0.42; }
+.reroll-mini:not(:disabled):active { transform: scale(0.96); }
+@media (max-width: 360px) { .reroll-mini__label { display: none; } }
+
+/* ---------- roster (one player per row) ---------- */
+.roster { flex: 1; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.roster__banner {
+  position: relative; overflow: hidden; display: flex; align-items: center; gap: 12px;
+  padding: 13px 15px; border-radius: 12px; box-shadow: var(--shadow);
+  background: linear-gradient(135deg,
+    var(--team) 0%,
+    var(--team) 38%,
+    color-mix(in srgb, var(--team) 55%, #fff) 100%);
+}
+.roster__banner::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(120% 80% at 100% -10%, rgba(255, 255, 255, 0.18), transparent 55%);
+}
+/* moving shimmer: a skewed light band sweeps across, then pauses */
+.roster__banner::before {
+  content: ""; position: absolute; top: -20%; bottom: -20%; left: -55%; width: 38%;
+  background: linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0.16) 50%, transparent 100%);
+  transform: skewX(-18deg); pointer-events: none;
+  animation: banner-shimmer 5.5s ease-in-out infinite;
+}
+@keyframes banner-shimmer { 0% { left: -55%; } 45%, 100% { left: 135%; } }
+.roster__banner > * { position: relative; z-index: 1; }
+@media (prefers-reduced-motion: reduce) { .roster__banner::before { animation: none; display: none; } }
+.roster__crest { width: 48px; height: 48px; flex: 0 0 auto; padding: 4px; background: rgba(255, 255, 255, 0.95); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.roster__crest .tlogo, .roster__crest .tlogo-badge { width: 100%; height: 100%; }
+.roster__team { font-weight: 800; font-size: 19px; line-height: 1.1; }
+.roster__hint { font-size: 11px; opacity: 0.85; font-weight: 600; }
+
+/* sort selector — pills; active state shown via a pressed-in shadow, not a bold color */
+.roster__sort { display: flex; align-items: center; gap: 8px; padding: 0 2px; }
+.roster__sort-label { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); flex: 0 0 auto; }
+.roster__sort-opts { display: flex; gap: 5px; flex: 1; }
+.sort-btn {
+  flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
+  padding: 5px 6px; font-size: 11px; font-weight: 600; color: var(--muted); cursor: pointer; font-family: inherit;
+  transition: box-shadow 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+.sort-btn.active { color: var(--text); font-weight: 700; background: var(--surface2); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.16); }
+@media (hover: hover) { .sort-btn:not(.active):hover { border-color: var(--border-strong); } }
+
+.roster__list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding: 2px; flex: 1; min-height: 0; -webkit-overflow-scrolling: touch; }
+.pcard {
+  position: relative; text-align: left; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px 12px; cursor: pointer; display: grid; grid-template-columns: auto 1fr;
+  grid-template-areas: "ava id" "stats stats"; gap: 9px 11px; font-family: inherit; box-shadow: var(--shadow);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.08s ease;
+}
+.pcard:not(:disabled):active { transform: scale(0.99); }
+.pcard.used { opacity: 0.55; }
+.pcard .avatar { grid-area: ava; }
+.pcard__id { grid-area: id; align-self: center; min-width: 0; }
+.pcard__name { font-weight: 800; font-size: 15px; line-height: 1.15; }
+.pcard__meta { font-size: 11px; color: var(--muted); font-weight: 600; }
+.pcard__stats { grid-area: stats; display: grid; grid-template-columns: repeat(5, 1fr); justify-items: center; border-top: 1px solid var(--border); padding: 8px 2px 2px; }
+.stat { display: flex; flex-direction: column; align-items: center; padding-left: 4px; width: 40px; }
+.stat__v { font-size: 16px; font-weight: 800; color: var(--text); line-height: 1.05; letter-spacing: -0.03em; }
+.stat__k { font-size: 9px; font-weight: 700; letter-spacing: 0.05em; color: var(--muted); margin-top: 2px; }
+.pcard__used { position: absolute; top: 10px; right: 12px; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: var(--accent); background: #fdeaea; border-radius: 4px; padding: 3px 6px; }
+
+/* ---------- assign sheet (no ratings shown) ---------- */
+.sheet-backdrop { position: fixed; inset: 0; background: rgba(20, 20, 25, 0.35); z-index: 50; display: flex; align-items: flex-end; justify-content: center; animation: fade-in 0.15s ease both; }
+.sheet { width: 100%; max-width: var(--frame); background: var(--surface); border-top: 1px solid var(--border); border-radius: 18px 18px 0 0; padding: 10px 16px calc(20px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.12); animation: sheet-up 0.22s cubic-bezier(0.2, 0.9, 0.3, 1) both; }
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+.sheet__grab { width: 38px; height: 4px; background: var(--border-strong); border-radius: 4px; margin: 4px auto 12px; }
+.sheet__head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.sheet__name { font-weight: 800; font-size: 18px; }
+.sheet__sub { font-size: 12px; color: var(--muted); font-weight: 600; }
+.sheet__statline { display: grid; grid-template-columns: repeat(5, 1fr); justify-items: center; padding: 12px 6px; background: var(--surface2); border-radius: 8px; margin-bottom: 14px; }
+.sheet__prompt { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: var(--muted); text-transform: uppercase; margin: 0 2px 8px; }
+.sheet__options { display: flex; flex-direction: column; gap: 8px; }
+.opt { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 9px; background: var(--surface); border: 1px solid var(--border-strong); color: var(--text); cursor: pointer; font-family: inherit; }
+.opt:active { transform: scale(0.99); }
+.opt__icon { font-size: 18px; }
+.opt__label { flex: 1; text-align: left; font-weight: 700; font-size: 15px; }
+.opt__go { font-size: 22px; color: var(--faint); font-weight: 700; }
+.sheet__cancel { width: 100%; margin-top: 12px; background: transparent; border: none; color: var(--muted); font-weight: 600; padding: 10px; cursor: pointer; font-family: inherit; }
+
+/* ---------- reveal ---------- */
+.reveal-screen { align-items: stretch; justify-content: flex-start; gap: 16px; }
+.tier-bg-goat, .tier-bg-high, .tier-bg-mid, .tier-bg-low { background: none; }
+.reveal-head { text-align: center; font-weight: 800; letter-spacing: 0.12em; font-size: 13px; color: var(--muted); text-transform: uppercase; }
+.pct-slam { text-align: center; margin-top: 6px; animation: slam 0.5s cubic-bezier(0.2, 1.3, 0.4, 1) both; }
+@keyframes slam { 0% { transform: scale(0.5); opacity: 0; } 60% { transform: scale(1.06); } 100% { transform: scale(1); opacity: 1; } }
+.pct-slam__context { font-size: 14px; color: var(--muted); margin-bottom: 2px; }
+.pct-slam__context b { color: var(--text); font-weight: 800; }
+.pct-slam__big { display: flex; align-items: flex-start; justify-content: center; line-height: 0.9; }
+.pct-slam__num { font-size: 92px; font-weight: 900; color: var(--tier-color, var(--text)); }
+.pct-slam__ord { font-size: 28px; font-weight: 800; margin-top: 9px; color: var(--tier-color, var(--text)); }
+.pct-slam__word { font-size: 14px; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase; color: var(--muted); }
+.pct-slam__blurb { margin: 8px 0 16px; font-size: 22px; font-weight: 900; color: var(--tier-color, var(--text)); }
+.pct-slam__actions { display: flex; flex-direction: column; gap: 8px; max-width: 280px; margin: 0 auto; }
+/* draw attention to Play again with a gentle pulse + glow ring */
+.pct-slam__actions .btn-primary { animation: cta-pulse 1.7s ease-in-out infinite; }
+@keyframes cta-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); }
+  50% { transform: scale(1.025); box-shadow: 0 0 0 9px color-mix(in srgb, var(--accent) 0%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) { .pct-slam__actions .btn-primary { animation: none; } }
+
+/* ---------- gamified tier ladder ---------- */
+.tiermeter { margin: 14px auto 4px; max-width: 300px; }
+.tiermeter__bars { display: flex; align-items: flex-end; justify-content: center; gap: 5px; height: 38px; }
+.tiermeter__step {
+  flex: 1; border-radius: 4px 4px 2px 2px; background: var(--border);
+  transition: background 0.2s ease, box-shadow 0.2s ease; cursor: default;
+}
+.tiermeter__step.on { background: var(--c); }
+/* subtle: a faint static ring on the current step (no animation — Play again gets the attention) */
+.tiermeter__step.cur { box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 28%, transparent); }
+.tiermeter__caption { display: flex; align-items: baseline; justify-content: center; gap: 8px; margin-top: 8px; }
+.tiermeter__cur { font-weight: 800; font-size: 14px; letter-spacing: 0.02em; }
+.tiermeter__next { font-size: 12px; color: var(--muted); font-weight: 600; }
+
+/* ---------- player comp ("plays like X") ---------- */
+.comp { margin: 20px auto 22px; max-width: 330px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; box-shadow: var(--shadow); }
+.comp__row { display: flex; align-items: center; gap: 13px; }
+.comp__who { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: left; gap: 1px; }
+.comp__name { font-weight: 800; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.comp__team { font-size: 12px; color: var(--muted); font-weight: 600; }
+.comp__match { display: flex; flex-direction: column; align-items: center; flex: 0 0 auto; padding-left: 4px; }
+.comp__pct { font-size: 23px; font-weight: 900; line-height: 1; color: var(--match, var(--text)); letter-spacing: -0.02em; }
+.comp__pct-label { font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+/* per-game stat line, matching the roster cards (shares .stat) */
+.comp__stats { display: grid; grid-template-columns: repeat(5, 1fr); justify-items: center; margin-top: 11px; padding-top: 11px; border-top: 1px solid var(--border); }
+/* on the white result card, inset the comp so it reads */
+.result-card .comp { margin: 16px 0 4px; max-width: none; background: var(--surface3); box-shadow: none; }
+
+/* ---------- result card ---------- */
+.result-screen { gap: 16px; justify-content: flex-start; }
+.result-screen__head { text-align: center; font-weight: 800; letter-spacing: 0.12em; font-size: 13px; color: var(--muted); text-transform: uppercase; }
+.result-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: var(--shadow-lg); border-top: 4px solid var(--tier-color, var(--border)); }
+.result-card__brand { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.result-card__logo { font-weight: 800; letter-spacing: 0.06em; font-size: 13px; color: var(--text); }
+.result-card__logo b { color: var(--accent); }
+.result-card__tag { font-size: 10px; color: var(--faint); letter-spacing: 0.08em; }
+.result-card__headline { display: flex; align-items: center; justify-content: space-between; padding: 4px 2px 8px; }
+.result-card__pct { font-size: 54px; font-weight: 900; line-height: 0.9; display: flex; align-items: baseline; gap: 2px; }
+.result-card__ord { font-size: 22px; }
+.result-card__pctword { font-size: 12px; color: var(--muted); letter-spacing: 0.06em; margin-left: 4px; align-self: flex-end; margin-bottom: 6px; }
+.result-card__headline .result-card__pct { color: var(--tier-color, var(--text)); }
+.result-card__score { text-align: right; }
+.result-card__total { font-size: 36px; font-weight: 900; color: var(--text); }
+.result-card__ceil { font-size: 16px; color: var(--muted); margin-left: 4px; }
+.result-card__blurb { font-weight: 900; font-size: 17px; margin: 0 2px 12px; }
+
+.result-card__rows { display: flex; flex-direction: column; gap: 6px; }
+.rrow { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; background: var(--surface3); border-left: 4px solid var(--team); }
+.rrow .avatar { flex: 0 0 auto; }
+.rrow__player { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.rrow__ability { display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.rrow__icon { font-size: 12px; }
+.rrow__name { font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+.rrow__teamline { display: flex; align-items: center; gap: 5px; }
+.rrow__teamline .tlogo { width: 15px; height: 15px; }
+.rrow__team { font-size: 11px; font-weight: 700; }
+.rrow__rating { font-size: 26px; font-weight: 900; min-width: 38px; text-align: right; }
+.result-card__foot { text-align: center; margin-top: 14px; font-size: 10px; letter-spacing: 0.14em; color: var(--faint); text-transform: uppercase; }
+.result-actions { display: flex; flex-direction: column; gap: 8px; }
+
+/* ---------- avatar + logos ---------- */
+.avatar { border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; flex: 0 0 auto; overflow: hidden; border: 1px solid var(--border); }
+.avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center 14%; }
+.tlogo { object-fit: contain; }
+.tlogo-badge { display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; font-weight: 900; flex: 0 0 auto; }
+.slot__fill .tlogo { width: 20px; height: 20px; flex: 0 0 auto; }
+
+@media (max-height: 720px) {
+  .title-mark__goat { font-size: 70px; }
+  .pct-slam__num { font-size: 74px; }
+}
+
+/* =====================================================================
+   DESKTOP / WIDE SCREENS (>= 860px) — two-pane game, centered overlays
+   ===================================================================== */
+@media (min-width: 860px) {
+  :root { --frame: 1000px; }
+  #root { align-items: flex-start; }
+  .app-frame { max-width: var(--frame); min-height: 100vh; }
+  .screen { padding: 28px 28px 40px; }
+
+  .title-mark__build { font-size: 28px; }
+  .title-mark__goat { font-size: 108px; }
+  .title-pitch { font-size: 16px; max-width: 380px; }
+  .btn-start { width: 300px; }
+
+  /* fixed-height two-pane: the page itself doesn't scroll; only the player list does */
+  .game-screen { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 28px; align-items: stretch; max-width: 960px; margin: 0 auto; width: 100%; height: 100vh; }
+  .game-top { gap: 14px; align-self: start; }
+  .game-bottom { min-height: 0; }
+  /* desktop sidebar always shows the card; the mobile toggle is hidden */
+  .goat-toggle { display: none; }
+  .goat-card-wrap { display: block; }
+  .goat-card.compact .slot { padding: 10px 12px; }
+  .goat-card .slot__name { font-size: 13.5px; }
+  .goat-card .slot__rating { font-size: 25px; }
+  .goat-card__total-value { font-size: 32px; }
+
+  .roster__team { font-size: 22px; }
+  /* roster fills the column; only roster__list scrolls (keeps the team/year card pinned) */
+  .pcard { grid-template-columns: auto 1fr auto; grid-template-areas: "ava id stats"; align-items: center; gap: 14px; }
+  .pcard__stats { border-top: none; padding-top: 0; max-width: 320px; }
+
+  .reel-window { max-width: 440px; }
+  .tyreel { max-width: 460px; }
+  .spin-stage { padding-top: 40px; }
+
+  .sheet-backdrop { align-items: center; }
+  .sheet { max-width: 440px; border-radius: 16px; padding: 18px 18px 22px; box-shadow: var(--shadow-lg); animation: sheet-pop 0.18s ease both; }
+  .sheet__grab { display: none; }
+  @keyframes sheet-pop { from { transform: scale(0.94); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  .reveal-screen, .result-screen { max-width: 620px; margin: 0 auto; width: 100%; padding-top: 36px; }
+  .pct-slam__num { font-size: 108px; }
+  .result-actions { flex-direction: row; flex-wrap: wrap; }
+  .result-actions .btn-primary { flex: 1 1 100%; }
+  .result-actions .btn-secondary, .result-actions .btn-ghost { flex: 1; }
+}
+
+/* Hover affordances — pointer devices only */
+@media (hover: hover) and (pointer: fine) {
+  .pcard:not(:disabled):hover { border-color: var(--border-strong); box-shadow: var(--shadow); }
+  .reroll:not(:disabled):hover { border-color: var(--accent); }
+  .opt:hover { border-color: var(--accent); }
+  .mode-toggle:not(:disabled):hover { border-color: var(--text); }
+  .btn-start:hover, .btn-primary:hover { background: var(--accent-dim); }
+  .btn-secondary:hover { border-color: var(--text); }
+}

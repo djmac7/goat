@@ -1,0 +1,145 @@
+# BUILD THE GOAT — pipeline configuration (every tunable lives here; echoed into goat-data.json meta)
+# Spec: build-the-goat-data-scoring-spec.md  §10
+
+source: "basketball-reference via kaggle:sumitrodatta/nba-aba-baa-stats"
+snapshot: "2025-04"            # date/version of the pinned raw CSV download
+
+paths:
+  raw: "data/raw"             # pinned Kaggle CSVs (gitignored)
+  work: "data/work"           # intermediate artifacts (ingested/universe/normalized/scored)
+  out: "data/goat-data.json"
+  percentile_out: "data/percentile-table.json"
+  assets: "assets"
+
+# --- §12 Monte Carlo percentile generator (06_montecarlo.py) ---
+# Simulate many LEGAL random playthroughs of the real game (forced assignment,
+# one-player-once, one Team-reroll + one Year-reroll) and record each final score.
+# The score->percentile CDF is what the app reads to headline "Xth percentile".
+montecarlo:
+  n_sims: 500000              # number of random legal playthroughs
+  seed: 20260623             # fixed -> reproducible / byte-identical table
+  p_reroll: 0.5              # per-spin probability a random player uses an available reroll
+  # ability order is fixed and matches the six slots the game ships (data ratings keys)
+  abilities: ["shooting", "scoring", "playmaking", "perimeter_d", "rim_protection", "rebounding"]
+
+# --- §3 rating unit ---
+# team_split: one rating per (player, season, TEAM) stint — a player traded mid-season
+#             becomes multiple entries, each scored on ONLY that team's stats (the game
+#             populates rosters from these team-specific entries).
+# season:     one rating per (player, season), traded players collapsed to the combined
+#             season-total row (the original spec v1 default).
+rating_unit: "team_split"
+
+# --- §4 universe filter ---
+league: "NBA"                 # drop ABA / BAA rows
+era_min_season: 1980          # season is the END year; 1979-80 -> 1980 (3pt line + full rate-stat tracking)
+min_sample:
+  mp: 500
+  g: 20
+
+# --- §6 empirical-Bayes shrinkage stabilization constants K ---
+shrink_K:
+  fg3: 100                    # 3P%  shrunk on x3pa toward season league 3P%
+  ft: 50                      # FT%  shrunk on fta  toward season league FT%
+  fg2: 100                    # 2P%  shrunk on x2pa toward season league 2P%
+
+# --- §7 at-rim finishing component (1997+ only, optional/gated) ---
+# Enabled: rows with Player Shooting data (season >= 1997) get the 4th Finishing component;
+# rows without it fall back to the proportionally-redistributed 3-component weights automatically.
+at_rim:
+  enabled: true
+  min_season: 1997
+  K: 100                      # shrink at-rim FG% on estimated 0-3ft attempts toward season league mean
+
+# --- §7 weights (starting points to tune; ranking is relative so the scale is unaffected) ---
+weights:
+  shooting:                   # shooting SKILL = make-rate + FT touch (volume/impact lives in `scoring`).
+                              # Efficiency-led so great-but-lower-volume shooters (Bird) aren't buried;
+                              # score3 keeps a light volume floor + EB-shrinkage guards tiny samples.
+    fg3_pct: 0.50             # x3p_percent + x3pa       (shrunk — primary: 3pt make rate)
+    ft_pct: 0.35             # ft_percent + fta         (shrunk — era-neutral shooting touch)
+    score3: 0.15              # 3 * x3p, TS%-gated       (light volume floor: must actually shoot 3s)
+  scoring:                    # VOLUME-led, ERA-RELATIVE (ranked within season — see era_relative_ratings).
+                              # PPG leads so a season's scoring leader rates elite in any era; efficiency
+                              # is light + 3pt-NEUTRAL (adj_ts) so non-3pt shooters aren't penalized.
+    pts_rate: 0.80            # points per game                  (era-relative VOLUME — leads)
+    usg: 0.10                 # usg_percent                      (shot-creation load)
+    adj_ts: 0.10              # 3pt-neutral shot-making %        (light EFFICIENCY)
+  playmaking:                 # creation-led (volume + rate); ball-security via the single usage-fair
+                              # ast%/tov% (raw ast/to dropped — it double-counted low-TO pass specialists
+                              # like Calderón). usage-fair security keeps high-usage engines (LeBron) high.
+    ast_total: 0.45           # ast (season total)      (ABSOLUTE volume — separates GOAT creators)
+    ast_pct: 0.35             # ast_percent             (creation rate; credibility-shrunk on MP)
+    ast_security: 0.20        # ast% / tov%             (usage-fair ball security; credibility-shrunk on ast+TO)
+  perimeter_d:                # rebalanced: steals (gambling-biased) no longer dominate; lean on dbpm + volume
+    stl_pct: 0.35             # stl_percent              (credibility-shrunk on MP)
+    dbpm: 0.45                # dbpm                     (credibility-shrunk on MP)
+    stl_total: 0.20           # stl (season total)      (ABSOLUTE volume — rewards durable on-ball defenders)
+    # NOTE: dws (defensive win shares) was tried here but REMOVED — being a cumulative,
+    # team-context stat it rewards big minutes on good defenses and INFLATED exactly the
+    # star offensive guards we wanted to temper. Box-score data cannot mark a high-steal,
+    # positive-dbpm guard (e.g. prime Curry/CP3) as a poor perimeter defender.
+  rim_protection:             # volume added so durable rim protectors outrank low-minute rate spikers
+    blk_pct: 0.50             # blk_percent              (credibility-shrunk on MP)
+    dbpm: 0.25                # dbpm                     (credibility-shrunk on MP)
+    blk_total: 0.25           # blk (season total)      (ABSOLUTE volume)
+  rebounding:                 # volume added (§5 override) so high-minute anchors aren't outranked by
+                              # low-minute rate compilers (cf. shooting); trb% still the primary signal
+    trb_pct: 0.40             # trb_percent              (credibility-shrunk on MP)
+    trb_total: 0.25           # trb (season total)      (ABSOLUTE volume)
+    oreb_pct: 0.15            # orb_percent              (credibility-shrunk on MP)
+    dreb_pct: 0.20            # drb_percent              (credibility-shrunk on MP)
+
+# --- §7 volume credibility: regress each rate/ratio component toward the universe mean
+# by its backing volume (value_adj = mu + (value-mu)*n/(n+K)) BEFORE ranking, so a
+# low-volume specialist can't rate alongside a high-volume star. Components already
+# empirical-Bayes shrunk on attempts (fg3_pct/ft_pct/fg2_pct/at_rim) and cumulative
+# volume stats (dws) are intentionally absent here — they already encode volume.
+# `volume` names a column or a derived key: fga = x2pa+x3pa, ast_plus_tov = ast+tov.
+credibility:
+  ast_pct:      { volume: mp,          K: 400 }   # assist rate backed by minutes
+  ast_security: { volume: ast_plus_tov, K: 80 }   # ast%/tov% ratio backed by ast+TO volume
+  stl_pct:      { volume: mp,          K: 400 }   # steal rate backed by minutes
+  dbpm:         { volume: mp,          K: 400 }   # box +/- stabilizes with minutes
+  blk_pct:      { volume: mp,          K: 400 }   # block rate backed by minutes
+  trb_pct:      { volume: mp,          K: 300 }   # rebound rates backed by minutes
+  oreb_pct:     { volume: mp,          K: 300 }
+  dreb_pct:     { volume: mp,          K: 300 }
+
+# --- scoring-volume efficiency guardrails (§7): a scoring-VOLUME component is multiplied by
+# an efficiency gate g = clip((eff - (season_mean_eff - band)) / band, gmin, 1) so volume only
+# pays off at acceptable efficiency. g=1 at/above league-average; ramps to gmin a `band` below;
+# capped at 1 (never rewards extra efficiency — that's the separate efficiency component).
+shooting_guardrail:           # shooting's 3pt scoring volume — gate on TS% (3pt efficiency relevant)
+  band: 0.06
+  gmin: 0.10
+
+# --- era normalization: these ratings rank each component WITHIN season instead of across the
+# whole cross-era universe, so a player is judged vs his own-year peers (pace/era neutral) —
+# each season's leader in an ability rates elite regardless of era.
+# Only SCORING is era-relative (so a season's scoring leader rates elite in any era).
+# Everything else is cross-era: shooting genuinely improved over time, and era-normalizing
+# the rate stats inflated weak-year leaders (e.g. Calderón) to all-time-great status.
+era_relative_ratings: ["scoring"]
+
+# --- final rating curve: reshape the flat 0-100 percentile (which puts a fixed ~10%
+# at 90+) into a clipped normal so that elite ratings are SCARCE. Median stays ≈ mean;
+# both tails thin out. Monotonic, so leaderboards/top-K ranks are unchanged. sd is the
+# scarcity knob (smaller sd -> fewer 90s). Set `curve: null` to keep the flat percentile.
+curve:
+  mean: 50                    # median player ~ 50
+  sd: 16                      # tight: ~0.7% of seasons reach 90+, ~0.1% at 100 — high scores are scarce
+  sd_by_rating:
+    scoring: 20               # softer ONLY for scoring (~2.4% at 90+) so era-relative scoring
+                              # leaders reliably clear 90 in any era
+
+# --- §11 QA expectations: names that must surface near the top of each ability ---
+qa:
+  top_k: 40                   # check the expected names land within the top-K player-seasons
+  expect_top:
+    rebounding: ["Dennis Rodman", "Andre Drummond", "Dwight Howard"]
+    rim_protection: ["Hakeem Olajuwon", "Dikembe Mutombo", "Mark Eaton", "Rudy Gobert", "Victor Wembanyama"]
+    shooting: ["Stephen Curry", "Klay Thompson", "Ray Allen", "Kyle Korver", "Steve Nash"]
+    playmaking: ["John Stockton", "Magic Johnson", "Steve Nash", "Chris Paul", "LeBron James", "Nikola Jokić"]
+    perimeter_d: ["Gary Payton", "Scottie Pippen", "Michael Jordan", "Kawhi Leonard", "Tony Allen"]
+    scoring: ["Michael Jordan", "Kevin Durant", "Karl Malone", "Giannis Antetokounmpo", "Shai Gilgeous-Alexander", "Adrian Dantley"]
