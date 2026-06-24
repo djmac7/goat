@@ -101,12 +101,19 @@ def main():
     # player_id) — a season-level honor broadcasts across a traded player's team stints. ---
     acc_cfg = cfg.get("defensive_accolade", {})
     if acc_cfg.get("enabled"):
-        eot = read_table(cfg, "End of Season Teams.csv",
-                         ["season", "lg", "type", "number_tm", "player_id"])
-        alld = eot[(eot["type"] == "All-Defense") & (eot["lg"] == "NBA")].copy()
-        alld["_acc"] = alld["number_tm"].map({
-            "1st": float(acc_cfg.get("all_def_1st", 1.0)),
-            "2nd": float(acc_cfg.get("all_def_2nd", 0.6))}).fillna(0.0)
+        # All-Defense recognition via the continuous VOTE SHARE (not just made/missed the team), so a
+        # snubbed-but-voted-for defender (OG Anunoby's 2025, Klay's non-selection years) gets partial
+        # credit instead of falling off the binary cliff. The share already encodes the tier — a
+        # 1st-teamer ~0.85-1.0, a 2nd-teamer ~0.5-0.7, a real snub ~0.1-0.4. Voting covers the whole
+        # 1980+ universe (every selectee has a share; the only gaps are pre-1980).
+        votes = read_table(cfg, "End of Season Teams (Voting).csv",
+                           ["season", "lg", "type", "player_id", "share"])
+        # NB: the voting file uses lowercase 'nba' for lg (the selections file used 'NBA') — match case-insensitively
+        alld = votes[(votes["type"] == "all_defense")
+                     & (votes["lg"].astype("string").str.lower() == "nba")].copy()
+        share = pd.to_numeric(alld["share"], errors="coerce").fillna(0.0)
+        min_share = float(acc_cfg.get("all_def_min_share", 0.0))
+        alld["_acc"] = share.where(share >= min_share, 0.0) * float(acc_cfg.get("all_def_weight", 1.0))
         alld_acc = alld.groupby(["season", "player_id"])["_acc"].max()
 
         shares = read_table(cfg, "Player Award Shares.csv",

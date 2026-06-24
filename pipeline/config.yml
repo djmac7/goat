@@ -183,16 +183,20 @@ perimeter_gate:
   blk_hi: 5.0                 # blk% at/above which dbpm credit is floored to gmin
   gmin: 0.20
 
-# --- §7 defensive-accolade signal: All-Defensive Team selections + DPOY vote share, ingested in
-# 01_ingest into a per-(player,season) `def_accolade` value = (1st-team or 2nd-team points) + DPOY
-# share. This is the one NON-box-score signal in the pipeline — it exists because no box-score stat
-# can measure on-ball containment (the reason Bruce Bowen, 8x All-Defense, rated only 83 on steals).
-# Still fully deterministic (§0): it's recorded voting data, not a model output. Kept a MODEST weight
-# so the box score still leads; it nudges, not dominates.
+# --- §7 defensive-accolade signal: All-Defense VOTE SHARE + DPOY vote share, ingested in 01_ingest
+# into a per-(player,season) `def_accolade` value = all_def_share + dpoy_share. This is the one
+# NON-box-score signal in the pipeline — it exists because no box-score stat can measure on-ball
+# containment (no single stat fits every elite stopper: OG has steals+blocks, Payton steals only,
+# Bowen neither). Using the continuous vote share (not just made/missed the team) credits the
+# snubbed-but-recognized defenders the binary cliff dropped. Still fully deterministic (§0): recorded
+# voting data, not a model output. Weighted enough to matter, but the box score still leads.
 defensive_accolade:
   enabled: true
-  all_def_1st: 1.0           # All-Defensive 1st Team selection value
-  all_def_2nd: 0.75          # All-Defensive 2nd Team selection value (raised: lifts one-time 2nd-teamers like Klay)
+  all_def_weight: 1.0        # multiplier on All-Defense VOTE SHARE (0-1) — continuous recognition that
+                             # credits snubbed-but-voted-for defenders (OG, Klay's non-selection years),
+                             # not just whether they made the team. Share encodes the tier on its own.
+  all_def_min_share: 0.10    # ignore trivial vote shares below this — a few stray votes (often for a
+                             # steal-merchant like Rubio) would otherwise rank above the no-vote mass
   dpoy_share: 1.0            # multiplier on DPOY vote share (0-1) added on top
 
 # --- §7 rim accolade routing: the accolade is position-blind, so route its rim_protection credit to
