@@ -107,12 +107,21 @@ describe('Reveal + Result screens render without crashing', () => {
     scoreForPercentile: () => 545,
   }
 
-  it('RevealScreen mounts and slams the percentile after the beats', async () => {
+  it('RevealScreen slams the percentile, collapses the team card, and surfaces Play Again', async () => {
     vi.useFakeTimers()
-    const { container } = render(<RevealScreen game={game} state={finishedState()} onDone={() => {}} />)
+    const onPlayAgain = vi.fn()
+    const { container } = render(<RevealScreen game={game} state={finishedState()} onDone={() => {}} onPlayAgain={onPlayAgain} />)
+    // during the count-up the team card is open (no toggle yet)
+    expect(container.querySelector('.reveal-team.collapsed')).toBeFalsy()
+    expect(container.querySelector('.reveal-team__toggle')).toBeFalsy()
     await act(async () => { vi.advanceTimersByTime(6 * 430 + 800) })
+    // at the slam: percentile shown, team card collapsed, toggle + Play Again present
     expect(container.querySelector('.pct-slam')).toBeTruthy()
     expect(screen.getByText('percentile')).toBeTruthy()
+    expect(container.querySelector('.reveal-team.collapsed')).toBeTruthy()
+    // toggle re-opens the team card
+    await act(async () => { container.querySelector('.reveal-team__toggle').click() })
+    expect(container.querySelector('.reveal-team.collapsed')).toBeFalsy()
     vi.useRealTimers()
   })
 

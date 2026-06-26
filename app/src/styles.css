@@ -298,6 +298,23 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 /* ---------- reveal ---------- */
 .reveal-screen { align-items: stretch; justify-content: flex-start; gap: 16px; }
 .tier-bg-goat, .tier-bg-high, .tier-bg-mid, .tier-bg-low { background: none; }
+
+/* the scored GOAT card collapses to a pill after the tally (toggleable), so the percentile
+   + Play Again sit above the fold. grid-rows 1fr->0fr animates the height without measuring it. */
+.reveal-team { display: flex; flex-direction: column; }
+.reveal-team__toggle {
+  align-self: center; display: inline-flex; align-items: center; gap: 7px; margin-bottom: 10px;
+  background: var(--surface2); border: 1px solid var(--border-strong); border-radius: 999px;
+  padding: 7px 16px; font-size: 13px; font-weight: 700; color: var(--text); cursor: pointer;
+  transition: background 0.15s ease;
+}
+.reveal-team__toggle:hover { background: var(--surface3); }
+.reveal-team__toggle b { color: var(--accent); }
+.reveal-team__chev { font-size: 9px; color: var(--muted); }
+.reveal-team__body { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 0.38s cubic-bezier(0.2, 0.9, 0.3, 1); }
+.reveal-team.collapsed .reveal-team__body { grid-template-rows: 0fr; }
+.reveal-team__body > div { overflow: hidden; min-height: 0; }
+@media (prefers-reduced-motion: reduce) { .reveal-team__body { transition: none; } }
 .reveal-head { text-align: center; font-weight: 800; letter-spacing: 0.12em; font-size: 13px; color: var(--muted); text-transform: uppercase; }
 .pct-slam { text-align: center; margin-top: 6px; animation: slam 0.5s cubic-bezier(0.2, 1.3, 0.4, 1) both; }
 @keyframes slam { 0% { transform: scale(0.5); opacity: 0; } 60% { transform: scale(1.06); } 100% { transform: scale(1); opacity: 1; } }

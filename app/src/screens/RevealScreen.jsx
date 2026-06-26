@@ -4,12 +4,13 @@ import GoatCard from '../ui/GoatCard.jsx'
 import PlayerComp from '../ui/PlayerComp.jsx'
 import TierMeter from '../ui/TierMeter.jsx'
 import { findComp } from '../game/comp.js'
-import { percentileTier, TIER_COLOR, TIER_CELEBRATE } from '../ui/helpers.js'
+import { percentileTier, TIER_BLURB, TIER_COLOR, TIER_CELEBRATE } from '../ui/helpers.js'
 import { ordinalSuffix } from '../ui/ordinal.js'
 
 // Final reveal (App spec §5): assemble the card, COUNT UP the six ratings in sequence,
 // hard pause, then SLAM the percentile as the climax with the ceiling as context.
-// High percentiles get confetti + bright treatment; low ones stay muted.
+// Once scored, the GOAT card collapses (toggleable) so the percentile + a prominent
+// Play Again land above the fold — no scrolling to replay. High percentiles get confetti.
 const BEAT_MS = 430
 const PAUSE_MS = 750
 
@@ -24,12 +25,16 @@ export default function RevealScreen({ game, state, onDone, onPlayAgain }) {
 
   const [revealCount, setRevealCount] = useState(0)
   const [showPct, setShowPct] = useState(false)
+  const [teamOpen, setTeamOpen] = useState(true) // full card during the count-up; collapses at the slam
   const fired = useRef(false)
 
   useEffect(() => {
     const timers = []
     for (let i = 1; i <= 6; i++) timers.push(setTimeout(() => setRevealCount(i), i * BEAT_MS))
-    timers.push(setTimeout(() => setShowPct(true), 6 * BEAT_MS + PAUSE_MS))
+    timers.push(setTimeout(() => {
+      setShowPct(true)
+      setTeamOpen(false) // transition: fold the scored card away, bring the percentile + replay forward
+    }, 6 * BEAT_MS + PAUSE_MS))
     return () => timers.forEach(clearTimeout)
   }, [])
 
@@ -46,13 +51,28 @@ export default function RevealScreen({ game, state, onDone, onPlayAgain }) {
 
   return (
     <div className={'screen reveal-screen tier-bg-' + tier}>
-      <GoatCard
-        slots={state.slots}
-        game={game}
-        runningTotal={revealCount >= 6 ? total : sumShown(state.slots, revealCount)}
-        revealCount={revealCount}
-        ceiling={ceiling}
-      />
+      {/* The scored GOAT card. After the tally it collapses to a toggle bar so the result
+          (and Play Again) are immediately visible; the user can re-open it any time. */}
+      <div className={'reveal-team' + (teamOpen ? '' : ' collapsed')}>
+        {showPct && (
+          <button className="reveal-team__toggle" onClick={() => setTeamOpen((o) => !o)} aria-expanded={teamOpen}>
+            {teamOpen
+              ? <>Hide team <span className="reveal-team__chev">▲</span></>
+              : <>View your GOAT · <b>{total}</b>/{ceiling} <span className="reveal-team__chev">▼</span></>}
+          </button>
+        )}
+        <div className="reveal-team__body">
+          <div>
+            <GoatCard
+              slots={state.slots}
+              game={game}
+              runningTotal={revealCount >= 6 ? total : sumShown(state.slots, revealCount)}
+              revealCount={revealCount}
+              ceiling={ceiling}
+            />
+          </div>
+        </div>
+      </div>
 
       {showPct && (
         <div className="pct-slam" style={{ '--tier-color': TIER_COLOR[tier] }}>
@@ -61,8 +81,9 @@ export default function RevealScreen({ game, state, onDone, onPlayAgain }) {
             <span className="pct-slam__ord">{ordinalSuffix(percentile)}</span>
           </div>
           <div className="pct-slam__word">percentile</div>
-          <TierMeter percentile={percentile} total={total} scoreForPercentile={game.scoreForPercentile} />
-          <PlayerComp comp={comp} />
+          <div className="pct-slam__blurb">{TIER_BLURB[tier]}</div>
+
+          {/* Play Again is the priority CTA — kept right under the score so it's always above the fold. */}
           <div className="pct-slam__actions">
             <button className="btn-primary" onClick={onPlayAgain}>
               Play again <kbd className="kbd">R</kbd>
@@ -71,6 +92,9 @@ export default function RevealScreen({ game, state, onDone, onPlayAgain }) {
               Share your results <kbd className="kbd">S</kbd>
             </button>
           </div>
+
+          <TierMeter percentile={percentile} total={total} scoreForPercentile={game.scoreForPercentile} />
+          <PlayerComp comp={comp} />
         </div>
       )}
     </div>
