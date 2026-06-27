@@ -114,12 +114,10 @@ describe('Reveal + Result screens render without crashing', () => {
     // during the count-up the team card is open (no toggle yet)
     expect(container.querySelector('.reveal-team.collapsed')).toBeFalsy()
     expect(container.querySelector('.reveal-team__toggle')).toBeFalsy()
-    // percentile slams first (full card still up — the count-up keeps its old pacing)
+    // at the tally: percentile slams and the card folds together
     await act(async () => { vi.advanceTimersByTime(6 * 430 + 800) })
     expect(container.querySelector('.pct-slam')).toBeTruthy()
     expect(screen.getByText('percentile')).toBeTruthy()
-    // the card folds a beat later (COLLAPSE_MS) so the result glides into focus
-    await act(async () => { vi.advanceTimersByTime(1300) })
     expect(container.querySelector('.reveal-team.collapsed')).toBeTruthy()
     // toggle re-opens the team card
     await act(async () => { container.querySelector('.reveal-team__toggle').click() })

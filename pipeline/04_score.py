@@ -60,10 +60,12 @@ def component_values(df: pd.DataFrame, cfg: dict) -> dict:
     blk_total (defense), trb_total (boards)."""
     num = lambda c: pd.to_numeric(df[c], errors="coerce")
     season_mean = lambda s: s.groupby(df["season"]).transform("mean")
-    # ABSOLUTE-volume components are summed to the player's SEASON total across team_split stints, so a
-    # player traded mid-season is credited for his full-season volume (Drummond's 551 rebounds, not the
-    # 214 from one stint) instead of looking like a part-timer on each team. Single-team rows unchanged.
-    season_total = lambda s: s.groupby([df["player_id"], df["season"]]).transform("sum")
+    # The "volume" components are PER-GAME, not season totals: per-game production reflects a player's
+    # ROLE (minutes x rate) without penalizing AVAILABILITY (games played). A star limited by injury to a
+    # short season (Barkley's 20-game 2000, AD's 20-game 2026) keeps his elite per-game volume instead of
+    # being dragged by a low season total; a traded player's per-stint per-game is already correct. A
+    # low-MINUTE bench specialist still ranks low (little per-game) — the separation the term was for.
+    g = num("g").clip(lower=1.0)
 
     # (a) TS%-based gate for shooting's 3pt scoring volume
     gs = cfg["shooting_guardrail"]
@@ -80,7 +82,7 @@ def component_values(df: pd.DataFrame, cfg: dict) -> dict:
     min_3par = float(cfg["shooting_2pt_gate"]["min_3par"])
     is_shooter = pd.to_numeric(df["x3p_ar"], errors="coerce").fillna(0.0) >= min_3par
     fg3 = pd.to_numeric(df["fg3_pct_shrunk"], errors="coerce").where(is_shooter, np.nan)
-    score3 = ((3.0 * num("x3p")) * g_ts).where(is_shooter, np.nan)
+    score3 = ((3.0 * num("x3p") / g) * g_ts).where(is_shooter, np.nan)
     mid_range = pd.to_numeric(df["mid_range_shrunk"], errors="coerce").where(~is_shooter, np.nan)
 
     return {
@@ -90,7 +92,7 @@ def component_values(df: pd.DataFrame, cfg: dict) -> dict:
         "shooting": {
             "fg3_pct": fg3,          # SHOOTERS only: 3pt make-rate (dropped for non-shooters)
             "ft_pct": df["ft_pct_shrunk"],
-            "score3": score3,        # SHOOTERS: light volume floor (TS%-gated 3pt scoring)
+            "score3": score3,        # SHOOTERS: per-game 3pt volume floor (TS%-gated)
             "mid_range": mid_range,  # NON-shooters: measured 10-16ft/16ft-3pt make-rate (gated to real data)
         },
         # SCORING — VOLUME-led, ERA-RELATIVE (components ranked within season; see
@@ -103,7 +105,7 @@ def component_values(df: pd.DataFrame, cfg: dict) -> dict:
             "ts_eff": num("ts_percent"),                        # REAL TS% efficiency (3s at full value)
         },
         "playmaking": {
-            "ast_total": season_total(num("ast")),   # §5 override: absolute SEASON assists (volume; traded-safe)
+            "ast_total": num("ast") / g,             # per-game assists (volume — availability-neutral)
             "ast_pct": num("ast_percent"),           # creation rate
             # creation under scoring LOAD: ast% scaled by usage. Rewards a player who creates for
             # others WHILE shouldering a heavy scoring load (LeBron/Luka/Harden) over a pure-volume
@@ -120,7 +122,7 @@ def component_values(df: pd.DataFrame, cfg: dict) -> dict:
             # anchors (see perimeter_gate) so Robinson/Ewing/Hakeem don't leak in as elite PERIMETER
             # defenders. Steals are genuine perimeter events and stay ungated.
             "dbpm": num("dbpm") * _perimeter_dbpm_gate(num("blk_percent"), cfg),
-            "stl_total": season_total(num("stl")),   # absolute SEASON steals (volume; traded-safe)
+            "stl_total": num("stl") / g,             # per-game steals (volume — availability-neutral)
             # All-Defense/DPOY honor, block-rate-gated to GUARDS (gmin=0 so shot-blocking rim
             # anchors get ZERO perimeter credit from a position-blind honor — it routes to rim).
             "def_accolade": num("def_accolade") * _perimeter_dbpm_gate(num("blk_percent"), cfg, gmin=0.0),
@@ -128,14 +130,14 @@ def component_values(df: pd.DataFrame, cfg: dict) -> dict:
         "rim_protection": {
             "blk_pct": num("blk_percent"),
             "dbpm": num("dbpm"),
-            "blk_total": season_total(num("blk")),   # absolute SEASON blocks (volume; traded-safe)
+            "blk_total": num("blk") / g,             # per-game blocks (volume — availability-neutral)
             "drb_pct": num("drb_percent"),           # interior possession-ending (lifts no-swat anchors like Bam)
             # All-Defense/DPOY honor, drb-rate-gated to INTERIOR anchors (so Bam's honor counts here)
             "def_accolade": num("def_accolade") * _rim_accolade_gate(num("drb_percent"), cfg),
         },
         "rebounding": {
             "trb_pct": num("trb_percent"),
-            "trb_total": season_total(num("trb")),   # §5 override: absolute SEASON rebounds (volume; traded-safe)
+            "trb_total": num("trb") / g,             # per-game rebounds (volume — availability-neutral)
             "oreb_pct": num("orb_percent"),
             "dreb_pct": num("drb_percent"),
         },

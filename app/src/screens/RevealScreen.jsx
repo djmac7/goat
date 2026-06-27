@@ -13,7 +13,6 @@ import { ordinalSuffix } from '../ui/ordinal.js'
 // Play Again land above the fold — no scrolling to replay. High percentiles get confetti.
 const BEAT_MS = 430
 const PAUSE_MS = 750
-const COLLAPSE_MS = 1200 // let the fully-scored card + percentile breathe before folding it away
 
 export default function RevealScreen({ game, state, onDone, onPlayAgain }) {
   const total = state.result.total
@@ -32,10 +31,12 @@ export default function RevealScreen({ game, state, onDone, onPlayAgain }) {
   useEffect(() => {
     const timers = []
     for (let i = 1; i <= 6; i++) timers.push(setTimeout(() => setRevealCount(i), i * BEAT_MS))
-    // percentile slams with the full card still up (unchanged scoring feel); the card folds a
-    // beat later so the result + replay glide into focus rather than snapping at the tally.
-    timers.push(setTimeout(() => setShowPct(true), 6 * BEAT_MS + PAUSE_MS))
-    timers.push(setTimeout(() => setTeamOpen(false), 6 * BEAT_MS + PAUSE_MS + COLLAPSE_MS))
+    // at the tally: slam the percentile and fold the card together (smooth height+opacity
+    // transition carries the result into focus — no extra pause).
+    timers.push(setTimeout(() => {
+      setShowPct(true)
+      setTeamOpen(false)
+    }, 6 * BEAT_MS + PAUSE_MS))
     return () => timers.forEach(clearTimeout)
   }, [])
 
@@ -59,7 +60,7 @@ export default function RevealScreen({ game, state, onDone, onPlayAgain }) {
           <button className="reveal-team__toggle" onClick={() => setTeamOpen((o) => !o)} aria-expanded={teamOpen}>
             {teamOpen ? (
               <>
-                <span>Hide team</span>
+                <span>Hide breakdown</span>
                 <span className="reveal-team__chev" aria-hidden="true">▲</span>
               </>
             ) : (
