@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
 import pandas as pd
+from scipy.stats import norm
 from common import (load_config, work_path, percentile_rank, percentile_rank_within,
                     weighted_composite, credibility_shrink, bell_curve, scoring_guardrail)
 
@@ -144,11 +145,34 @@ def component_values(df: pd.DataFrame, cfg: dict) -> dict:
     }
 
 
+def _nonshooter_ceiling(composite: np.ndarray, cap: float, crv: dict, cat: str) -> float:
+    """Composite value whose final rating equals the non-shooter `cap`.
+
+    The pipeline maps composite -> flat percentile -> bell-curve -> rating, all monotonic,
+    so "rating <= cap" is exactly "composite <= this ceiling". Returns the composite quantile
+    at the flat percentile that bell-curves to `cap` (or `cap` itself when no curve is set)."""
+    comp = np.asarray(composite, dtype=float)
+    if crv:
+        sd = crv.get("sd_by_rating", {}).get(cat, crv["sd"])
+        p_cap = 100.0 * float(norm.cdf((cap - float(crv["mean"])) / float(sd)))
+    else:
+        p_cap = float(cap)
+    return float(np.nanpercentile(comp, np.clip(p_cap, 0.0, 100.0)))
+
+
 def main():
     cfg = load_config()
     df = pd.read_parquet(work_path(cfg, "normalized.parquet"))
     weights = cfg["weights"]
     comps = component_values(df, cfg)
+
+    # shooting shot-profile gate (reused for the composite ceiling below and the final cap):
+    # a 3pt shooter (3PA-rate >= min_3par) is scored on real 3pt data; a non-shooter's shooting
+    # is INFERRED from FT%/mid-range, so it can't be confirmed elite and is capped.
+    sg = cfg.get("shooting_2pt_gate", {})
+    cap = sg.get("nonshooter_cap")
+    is_shooter = (pd.to_numeric(df["x3p_ar"], errors="coerce").fillna(0.0)
+                  >= float(sg["min_3par"])).to_numpy() if sg else np.ones(len(df), bool)
 
     # --- §7 volume credibility: shrink configured rate/ratio components toward the
     # universe mean by their backing volume BEFORE ranking (see config `credibility`) ---
@@ -193,6 +217,16 @@ def main():
             df[f"_rk_{cat}_{name}"] = rank_df[name]
         # weighted-average -> composite (weights renormalized over present components)
         composite = weighted_composite(rank_df, weights[cat])
+        # SHOOTING: confine non-3pt shooters in COMPOSITE space, BEFORE the percentile+curve.
+        # A non-shooter's composite collapses to FT% (+ measured mid-range where it exists), which
+        # can rank a 95%-FT non-shooter (Calvin Murphy) #1 all-time. Capping only the final rating
+        # left those rows above real snipers in `_comp_shooting` — which tripped the QA name-regression
+        # and deflated real shooters' universe percentile. Clipping the composite to the cap-equivalent
+        # ceiling keeps the leaderboard (and `_comp_shooting`) honest and un-deflates the snipers above it.
+        if cat == "shooting" and cap is not None:
+            ceil = _nonshooter_ceiling(composite, float(cap), crv, cat)
+            confine = (~is_shooter) & ~np.isnan(composite)
+            composite = np.where(confine, np.minimum(composite, ceil), composite)
         df[f"_comp_{cat}"] = composite
         # 2nd round: percentile-rank the composite -> flat 0-100 ...
         final = percentile_rank(composite)
@@ -205,13 +239,9 @@ def main():
                                float(crv.get("floor", 0.0)))
         df[cat] = pd.Series(np.round(final), index=df.index).astype("Int64")
 
-    # SHOOTING cap for non-3pt shooters: their rating is INFERRED from FT%/mid-range (they take no
-    # 3s), so it can't be confirmed elite — clip it below the proven-shooter tier so the top of the
-    # shooting leaderboard stays actual 3pt shooters (a great-touch big like Sikma tops out at the cap).
-    sg = cfg.get("shooting_2pt_gate", {})
-    cap = sg.get("nonshooter_cap")
+    # SHOOTING final hard cap: the composite ceiling above lands non-shooters near `cap`; this
+    # guarantees they never round above it (a great-touch big like Sikma tops out exactly at the cap).
     if cap is not None:
-        is_shooter = pd.to_numeric(df["x3p_ar"], errors="coerce").fillna(0.0) >= float(sg["min_3par"])
         capped = df["shooting"].where(is_shooter, df["shooting"].clip(upper=int(cap)))
         df["shooting"] = capped.astype("Int64")
 
