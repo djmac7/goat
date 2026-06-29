@@ -39,6 +39,24 @@ describe('buildShareText', () => {
   it('includes the debate-bait comp', () => {
     expect(text).toContain('plays like LeBron James')
   })
+  it('brags with a tier verdict and ends on a competitive dare (the hook that earns the tap)', () => {
+    expect(text).toContain('first-ballot Hall of Famer') // 97th -> hof verdict
+    expect(text).toContain('Think you can top it?')       // hof CTA
+  })
+})
+
+describe('buildShareText — tier-aware verdict & dare', () => {
+  const base = { total: 300, ceiling: 470, slots, comp: null, url: '' }
+  it('a top score flexes the GOAT line and dares you to top it', () => {
+    const t = buildShareText({ ...base, percentile: 99 })
+    expect(t).toContain('I built the GOAT')
+    expect(t).toContain('Good luck topping it')
+  })
+  it('a low score leans into the self-burn and baits a rematch', () => {
+    const t = buildShareText({ ...base, percentile: 5 })
+    expect(t).toContain('certified bust')
+    expect(t).toContain('cannot do worse')
+  })
 })
 
 describe('buildShareText — mode labels & deep links', () => {
