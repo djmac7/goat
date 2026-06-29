@@ -29,7 +29,7 @@ export default function SettingsModal({ settings, update, onClose }) {
         <div className="setting-row">
           <div className="setting-row__text">
             <span className="setting-row__label">Hide player stats</span>
-            <span className="setting-row__desc">Draft blind. Much harder.</span>
+            <span className="setting-row__desc">Hard mode for pro NBA gamers like KOT4Q.</span>
           </div>
           <button
             className={'toggle' + (settings.hideStats ? ' on' : '')}

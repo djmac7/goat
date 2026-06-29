@@ -62,7 +62,7 @@ export default function RosterBoard({ team, players, openAbilities, onAssign, hi
 
       <div className="roster__list">
         {ordered.map((p) => (
-          <button key={p.id} className="pcard" onClick={() => setSelected(p)}>
+          <button key={p.id} className={'pcard' + (hideStats ? ' pcard--blind' : '')} onClick={() => setSelected(p)}>
             <Avatar name={p.name} src={playerPhotoUrl(p)} color={team.color} size={44} />
             <div className="pcard__id">
               <div className="pcard__name">{p.name}</div>

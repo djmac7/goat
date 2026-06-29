@@ -337,6 +337,10 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 .pcard:not(:disabled):active { transform: scale(0.99); }
 .pcard.used { opacity: 0.55; }
+/* blind draft (Hide player stats): no stats row is rendered, so drop the empty second grid
+   row that otherwise left a row-gap of dead space below the avatar — the card collapses to a
+   single avatar+name row, evenly padded. */
+.pcard--blind { grid-template-areas: "ava id"; align-items: center; }
 .pcard .avatar { grid-area: ava; }
 .pcard__id { grid-area: id; align-self: center; min-width: 0; }
 .pcard__name { font-weight: 800; font-size: 15px; line-height: 1.15; }
@@ -812,6 +816,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   .roster__team { font-size: 22px; }
   /* roster fills the column; only roster__list scrolls (keeps the team/year card pinned) */
   .pcard { grid-template-columns: auto 1fr auto; grid-template-areas: "ava id stats"; align-items: center; gap: 14px; }
+  .pcard--blind { grid-template-columns: auto 1fr; grid-template-areas: "ava id"; }
   .pcard__stats { border-top: none; padding-top: 0; max-width: 320px; }
 
   .reel-window { max-width: 440px; }
