@@ -57,11 +57,11 @@ export default function RevealScreen({ game, state, mode = 'unlimited', session,
   useEffect(() => {
     if (showPct && !fired.current && TIER_CELEBRATE.has(tier)) {
       fired.current = true
-      const burst = tier === 'goat' ? 160 : tier === 'hof' ? 120 : 90
-      confetti({ particleCount: burst, spread: 80, origin: { y: 0.4 }, scalar: 1.1 })
       if (tier === 'goat') {
-        setTimeout(() => confetti({ particleCount: 120, spread: 110, origin: { y: 0.5 } }), 250)
+        return fireGoatCelebration()
       }
+      const burst = tier === 'hof' ? 120 : 90
+      confetti({ particleCount: burst, spread: 80, origin: { y: 0.4 }, scalar: 1.1 })
     }
   }, [showPct, tier])
 
@@ -114,6 +114,7 @@ export default function RevealScreen({ game, state, mode = 'unlimited', session,
 
       {showPct && (
         <div className={'pct-slam tc-' + tier}>
+          {tier === 'goat' && <div className="pct-slam__emblem">👑 Greatest of All Time</div>}
           <div className="pct-slam__big">
             <span className="pct-slam__num">{percentile}</span>
             <span className="pct-slam__ord">{ordinalSuffix(percentile)}</span>
@@ -150,4 +151,25 @@ export default function RevealScreen({ game, state, mode = 'unlimited', session,
 
 function sumShown(slots, n) {
   return slots.slice(0, n).reduce((s, x) => s + (x.rating ?? 0), 0)
+}
+
+// Topping the ladder (99th) earns its own gold spectacle — distinct from the hof/allnba
+// confetti so reaching THE GOAT lands as an event: a climax burst, twin gold cannons,
+// a shower of 🐐, then a lingering wave. Returns a cleanup that cancels pending bursts.
+function fireGoatCelebration() {
+  const gold = ['#ffd700', '#f6c945', '#e3b341', '#c89200', '#fff3bf']
+  const timers = []
+  confetti({ particleCount: 200, spread: 100, startVelocity: 45, origin: { y: 0.42 }, scalar: 1.2, colors: gold })
+  timers.push(setTimeout(() => {
+    confetti({ particleCount: 80, angle: 60, spread: 70, origin: { x: 0, y: 0.65 }, colors: gold })
+    confetti({ particleCount: 80, angle: 120, spread: 70, origin: { x: 1, y: 0.65 }, colors: gold })
+  }, 180))
+  let goat
+  try { goat = confetti.shapeFromText({ text: '🐐', scalar: 2.6 }) } catch (e) { /* older canvas-confetti */ }
+  timers.push(setTimeout(() => confetti({
+    particleCount: goat ? 26 : 120, spread: 130, startVelocity: 36, origin: { y: 0.3 },
+    ...(goat ? { shapes: [goat], scalar: 2.6 } : { colors: gold }),
+  }), 380))
+  timers.push(setTimeout(() => confetti({ particleCount: 130, spread: 120, origin: { y: 0.5 }, colors: gold, scalar: 1.1 }), 650))
+  return () => timers.forEach(clearTimeout)
 }

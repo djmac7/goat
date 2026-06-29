@@ -4,6 +4,7 @@ import GoatCard from '../ui/GoatCard.jsx'
 import TeamYearReel from '../ui/TeamYearReel.jsx'
 import RosterBoard from '../ui/RosterBoard.jsx'
 import Avatar from '../ui/Avatar.jsx'
+import AbilityIcon from '../ui/AbilityIcon.jsx'
 import { playerPhotoUrl } from '../ui/assets.js'
 import { teamDisplay } from '../ui/helpers.js'
 
@@ -55,7 +56,9 @@ export default function GameScreen({ game, state, actions, canRerollTeam, canRer
               return isFilled ? (
                 <Avatar key={slot.ability} name={player?.name} src={playerPhotoUrl(player)} color={color} size={26} rounded={13} />
               ) : (
-                <span key={slot.ability} className="goat-toggle__ph" />
+                <span key={slot.ability} className="goat-toggle__ph">
+                  <AbilityIcon ability={slot.ability} size={14} strokeWidth={2.4} className="goat-toggle__ph-icon" />
+                </span>
               )
             })}
           </span>
