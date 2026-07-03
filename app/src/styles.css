@@ -128,6 +128,42 @@ body {
   padding: 18px 16px 24px;
   animation: fade-in 0.2s ease both;
 }
+
+/* ---------- RevIQ rail ads ----------
+   Two stacked units per side (…rail-1 over …rail-2), parked in the gutters just
+   outside the 940px frame. `position: fixed` so they stay pinned in the gutters as
+   the page scrolls, top-aligned with the top of the game frame content.
+
+   top = ModeBar height (48px: no hamburger while DAILY_ENABLED/PLAYERS_ENABLED are
+   off — grows to 55px if re-enabled) + .game-screen desktop padding-top (28px) = 76px,
+   which is the measured top of the team-year card / left column.
+
+   Horizontal position is the outer (further-from-content) of two candidates via min():
+     • pin-to-content:  50% − 470(half-frame) − 4(gap) − 300(width) = 50% − 774px
+       — a tight 4px gap; on narrow screens the rail bleeds off the outer viewport
+         edge and is clipped by `overflow-x: clip`.
+     • center-in-gutter: (gutter − width)/2 from the edge = 25% − 385px
+       — as the screen widens the gutter exceeds 300px and the rail centers in it.
+   They cross at ~1556px: below → pinned+clipped, above → centered.
+
+   Shown down to the width where ≥51% of the 300px unit is still visible (enough to
+   count as an impression): visible = 50vw − 474px ≥ 153px  →  vw ≥ 1254px. The 1260px
+   breakpoint covers 1280px laptops even after the stable scrollbar gutter is reserved. */
+.ad-rail { display: none; }
+
+@media (min-width: 1260px) {
+  .ad-rail {
+    position: fixed;
+    top: 76px;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .ad-rail--left  { left:  min(50% - 774px, 25% - 385px); }
+  .ad-rail--right { right: min(50% - 774px, 25% - 385px); }
+}
 @keyframes fade-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
 
 /* ---------- boot / lazy loader ---------- */
@@ -354,10 +390,11 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .pcard__used { position: absolute; top: 10px; right: 12px; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: var(--accent); background: #fdeaea; border-radius: 4px; padding: 3px 6px; }
 
 /* ---------- assign sheet (no ratings shown) ---------- */
-.sheet-backdrop { position: fixed; inset: 0; background: rgba(20, 20, 25, 0.35); z-index: 50; display: flex; align-items: flex-end; justify-content: center; animation: fade-in 0.15s ease both; }
-.sheet { width: 100%; max-width: var(--frame); background: var(--surface); border-top: 1px solid var(--border); border-radius: 18px 18px 0 0; padding: 10px 16px calc(20px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.12); animation: sheet-up 0.22s cubic-bezier(0.2, 0.9, 0.3, 1) both; }
-@keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
-.sheet__grab { width: 38px; height: 4px; background: var(--border-strong); border-radius: 4px; margin: 4px auto 12px; }
+/* Mobile: drops down from the TOP so it clears the RevIQ sticky anchor ad pinned to the
+   bottom of the screen. (≥860px it becomes a centered modal — see the desktop override.) */
+.sheet-backdrop { position: fixed; inset: 0; background: rgba(20, 20, 25, 0.35); z-index: 50; display: flex; align-items: flex-start; justify-content: center; animation: fade-in 0.15s ease both; }
+.sheet { width: 100%; max-width: var(--frame); display: flex; flex-direction: column; background: var(--surface); border-bottom: 1px solid var(--border); border-radius: 0 0 18px 18px; padding: calc(12px + env(safe-area-inset-top)) 16px 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12); animation: sheet-down 0.22s cubic-bezier(0.2, 0.9, 0.3, 1) both; }
+@keyframes sheet-down { from { transform: translateY(-100%); } to { transform: none; } }
 .sheet__head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
 .sheet__name { font-weight: 800; font-size: 18px; }
 .sheet__sub { font-size: 12px; color: var(--muted); font-weight: 600; }
@@ -794,7 +831,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
    DESKTOP / WIDE SCREENS (>= 860px) — two-pane game, centered overlays
    ===================================================================== */
 @media (min-width: 860px) {
-  :root { --frame: 1000px; }
+  :root { --frame: 940px; }
   #root { align-items: flex-start; }
   .app-frame { max-width: var(--frame); min-height: 100vh; }
   .screen { padding: 28px 28px 40px; }
@@ -805,7 +842,12 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   .btn-start { width: 300px; }
 
   /* fixed-height two-pane: the page itself doesn't scroll; only the player list does */
-  .game-screen { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 28px; align-items: stretch; max-width: 960px; margin: 0 auto; width: 100%; height: 100vh; }
+  /* nav inner padding matches .screen's desktop padding so the logo/Settings line up
+     exactly with the game grid's left/right edges (both share the same 940px frame) */
+  .modebar__inner { padding-left: 28px; padding-right: 28px; }
+
+  /* left column trimmed 380→320 so the narrower 940px frame keeps the roster (right column) at its width */
+  .game-screen { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 28px; align-items: stretch; max-width: 940px; margin: 0 auto; width: 100%; height: 100vh; }
   .game-top { gap: 14px; align-self: start; }
   .game-bottom { min-height: 0; }
   /* desktop sidebar always shows the card; the mobile toggle is hidden */
@@ -828,7 +870,6 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 
   .sheet-backdrop { align-items: center; }
   .sheet { max-width: 440px; border-radius: 16px; padding: 18px 18px 22px; box-shadow: var(--shadow-lg); animation: sheet-pop 0.18s ease both; }
-  .sheet__grab { display: none; }
   @keyframes sheet-pop { from { transform: scale(0.94); opacity: 0; } to { transform: none; opacity: 1; } }
 
   .reveal-screen, .result-screen { max-width: 620px; margin: 0 auto; width: 100%; padding-top: 36px; }

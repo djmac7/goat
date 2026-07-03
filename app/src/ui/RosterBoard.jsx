@@ -179,7 +179,6 @@ function AssignSheet({ player, openAbilities, team, hideStats = false, onPick, o
   return createPortal(
     <div className="sheet-backdrop" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="sheet__grab" />
         <div className="sheet__head">
           <Avatar name={player.name} src={playerPhotoUrl(player)} color={team.color} size={46} />
           <div>
@@ -214,7 +213,7 @@ function AssignSheet({ player, openAbilities, team, hideStats = false, onPick, o
             )
           })}
         </div>
-        <button className="sheet__cancel" onClick={onClose}>Cancel</button>
+        <button className="sheet__cancel" onClick={onClose}>Select a different player</button>
       </div>
     </div>,
     document.body
