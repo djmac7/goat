@@ -131,27 +131,28 @@ body {
 
 /* ---------- RevIQ rail ads ----------
    Two stacked units per side (…rail-1 over …rail-2), parked in the gutters just
-   outside the 940px frame. `position: fixed` so they stay pinned in the gutters as
+   outside the game frame. `position: fixed` so they stay pinned in the gutters as
    the page scrolls, top-aligned with the top of the game frame content.
 
    top = ModeBar height (48px: no hamburger while DAILY_ENABLED/PLAYERS_ENABLED are
    off — grows to 55px if re-enabled) + .game-screen desktop padding-top (28px) = 76px,
    which is the measured top of the team-year card / left column.
 
-   Horizontal position is the outer (further-from-content) of two candidates via min():
-     • pin-to-content:  50% − 470(half-frame) − 4(gap) − 300(width) = 50% − 774px
+   Horizontal position derives from --frame (which shrinks fluidly with the viewport)
+   so the rails track the frame edge. It's the outer of two candidates via min():
+     • pin-to-content:  50% − frame/2 − 4(gap) − 300(width)
        — a tight 4px gap; on narrow screens the rail bleeds off the outer viewport
          edge and is clipped by `overflow-x: clip`.
-     • center-in-gutter: (gutter − width)/2 from the edge = 25% − 385px
-       — as the screen widens the gutter exceeds 300px and the rail centers in it.
-   They cross at ~1556px: below → pinned+clipped, above → centered.
+     • center-in-gutter: (gutter − width)/2 from the edge = 25% − frame/4 − 150px
+       — once the frame caps at 1000px (≥1330px) the gutter exceeds 300px and the rail
+         centers in it.
 
-   Shown down to the width where ≥51% of the 300px unit is still visible (enough to
-   count as an impression): visible = 50vw − 474px ≥ 153px  →  vw ≥ 1254px. The 1260px
-   breakpoint covers 1280px laptops even after the stable scrollbar gutter is reserved. */
+   Shown down to 1080px — below that the 730px floored frame can't keep ≥51% visible.
+   Between 1080–1344px the frame tracks the viewport, so each unit holds a steady ~53%
+   visible; above 1344px the frame caps at 1000px and the units fill / center. */
 .ad-rail { display: none; }
 
-@media (min-width: 1260px) {
+@media (min-width: 1080px) {
   .ad-rail {
     position: fixed;
     top: 76px;
@@ -161,8 +162,8 @@ body {
     align-items: center;
     gap: 16px;
   }
-  .ad-rail--left  { left:  min(50% - 774px, 25% - 385px); }
-  .ad-rail--right { right: min(50% - 774px, 25% - 385px); }
+  .ad-rail--left  { left:  min(calc(50% - var(--frame) / 2 - 304px), calc(25% - var(--frame) / 4 - 150px)); }
+  .ad-rail--right { right: min(calc(50% - var(--frame) / 2 - 304px), calc(25% - var(--frame) / 4 - 150px)); }
 }
 @keyframes fade-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
 
@@ -364,7 +365,15 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .sort-btn.active { color: var(--text); font-weight: 700; background: var(--surface2); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.16); }
 @media (hover: hover) { .sort-btn:not(.active):hover { border-color: var(--border-strong); } }
 
-.roster__list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding: 2px; flex: 1; min-height: 0; -webkit-overflow-scrolling: touch; }
+/* Bottom scroll-fade: the mask fades the last 48px of the list to transparent; the matching
+   48px padding-bottom keeps that fade over trailing space, so a fully-scrolled or short
+   (non-overflowing) last card is never dimmed — only mid-scroll cards fade at the edge. */
+.roster__list {
+  display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding: 2px 2px 48px;
+  flex: 1; min-height: 0; -webkit-overflow-scrolling: touch;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), transparent);
+}
 .pcard {
   position: relative; text-align: left; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
   padding: 10px 12px; cursor: pointer; display: grid; grid-template-columns: auto 1fr;
@@ -831,9 +840,20 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
    DESKTOP / WIDE SCREENS (>= 860px) — two-pane game, centered overlays
    ===================================================================== */
 @media (min-width: 860px) {
-  :root { --frame: 940px; }
+  /* Frame shrinks fluidly with the viewport so the rail ads stay showable across the
+     whole desktop range: tracking 100vw − 344px keeps a constant ~53% of each 300px
+     unit visible (the 344 offset accounts for the reserved scrollbar gutter so the
+     impression clears 51% even on 17px scrollbars). Capped at 1000px (full layout,
+     reached at 1344px) and floored at 730px (below which the ads are hidden). */
+  :root { --frame: clamp(730px, calc(100vw - 344px), 1000px); }
   #root { align-items: flex-start; }
   .app-frame { max-width: var(--frame); min-height: 100vh; }
+  /* Only the game view is a fixed-height two-pane: cap the frame to the viewport so the
+     roster list scrolls inside its column (page stays put). Other views (result, browse,
+     archive) have no .game-screen, so they keep min-height:100vh and scroll the page.
+     No overflow:hidden here — it would clip the modebar's full-bleed background; the
+     game-screen does its own vertical clipping so nothing escapes the capped height. */
+  .app-frame:has(.game-screen) { height: 100vh; }
   .screen { padding: 28px 28px 40px; }
 
   .title-mark__build { font-size: 28px; }
@@ -846,8 +866,15 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
      exactly with the game grid's left/right edges (both share the same 940px frame) */
   .modebar__inner { padding-left: 28px; padding-right: 28px; }
 
-  /* left column trimmed 380→320 so the narrower 940px frame keeps the roster (right column) at its width */
-  .game-screen { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 28px; align-items: stretch; max-width: 940px; margin: 0 auto; width: 100%; height: 100vh; }
+  /* Left column resizes fluidly with the frame: 380px at ≥1330px, gliding down to its
+     300px minimum at 1200px (held there below). The roster (right column) absorbs the
+     rest via minmax(0, 1fr). */
+  /* min-height:0 lets the pane hold to the viewport height (it's a flex child of
+     .app-frame) instead of growing to content — so the roster list scrolls inside its
+     column and the team/year card + spin counter stay pinned, page itself doesn't scroll.
+     padding-bottom reserves room for the RevIQ sticky anchor ad so the roster list ends
+     cleanly above it instead of being clipped underneath. */
+  .game-screen { display: grid; grid-template-columns: clamp(300px, calc(300px + (100vw - 1200px) * 8 / 13), 380px) minmax(0, 1fr); gap: 28px; align-items: stretch; max-width: var(--frame); margin: 0 auto; width: 100%; height: 100vh; min-height: 0; padding-bottom: 84px; }
   .game-top { gap: 14px; align-self: start; }
   .game-bottom { min-height: 0; }
   /* desktop sidebar always shows the card; the mobile toggle is hidden */
@@ -876,6 +903,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   .pct-slam__num { font-size: 108px; }
   .result-actions .btn-secondary { flex: 1 1 calc(50% - 4px); }
 }
+
 
 /* Hover affordances — pointer devices only */
 @media (hover: hover) and (pointer: fine) {
