@@ -24,6 +24,17 @@ roster_size: 12           # players kept per pool cell (decade cells have deep c
                           # 12 keeps the recognizable names on e.g. the 90s Bulls)
 min_roster: 8             # a cell needs >= this many qualifying players to be playable
 
+# ACCOLADE FORCE-INCLUDES (decade grain). Roster membership is minutes-based, which cuts
+# short-tenure legends who defined a team in far fewer minutes than career role players.
+# These ids are force-added to their cell regardless of minutes rank (they still need a
+# rating-complete entry to exist), displacing the lowest-minutes qualifier to keep
+# roster_size. Key = "DECADE_FRANCHISE", value = [player_id, ...].
+roster_includes:
+  2010s_TOR: [leonaka01]  # Kawhi — 2019 Finals MVP & title in one season; too few minutes to rank
+  2010s_HOU: [paulch01]   # Chris Paul — 65-win Rockets, Game 7 of the 2018 WCF
+  2000s_DEN: [billuch01]  # Chauncey Billups — hometown trade, led Denver to the 2009 WCF
+  2020s_BRK: [hardeja01, irvinky01]  # Nets "Big 3" era alongside Durant
+
 # the year axis — `all` = every season in the filtered universe (era_min_season onward).
 # (A explicit list is still honored if you want to narrow the pool back down.)
 seasons: all

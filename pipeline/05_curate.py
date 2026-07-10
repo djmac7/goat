@@ -145,7 +145,8 @@ def main():
 
     if grain == "decade":
         players_out, rosters, franchises_out, axis_out, ceiling, n_pool = \
-            curate_decade(cfg, scored, membership, franchises, cur, roster_size, min_roster)
+            curate_decade(cfg, scored, membership, franchises, cur, roster_size, min_roster,
+                          pool.get("roster_includes") or {})
     else:
         players_out, rosters, franchises_out, axis_out, ceiling, n_pool = \
             curate_season(cfg, pool, scored, membership, franchises, cur,
@@ -194,8 +195,10 @@ def main():
     print(f"            ceiling: {ceiling}")
 
 
-def curate_decade(cfg, scored, membership, franchises, cur, roster_size, min_roster):
+def curate_decade(cfg, scored, membership, franchises, cur, roster_size, min_roster,
+                  roster_includes=None):
     """(decade, franchise) grid with peak ratings. Returns the goat-data pieces."""
+    roster_includes = roster_includes or {}
     entries = build_decade_grain(scored, cur, cfg)
     entries.to_parquet(work_path(cfg, "decade_scored.parquet"), index=False)
 
@@ -238,6 +241,14 @@ def curate_decade(cfg, scored, membership, franchises, cur, roster_size, min_ros
             continue
         roster = rows.sort_values(["mp", "id"], ascending=[False, True],
                                   kind="stable")["id"].head(roster_size).tolist()
+        # accolade force-includes: prepend any configured id that has a rating-complete
+        # entry but was cut by the minutes ranking, then trim back to roster_size (drops
+        # the lowest-minutes qualifier). See pool.yml `roster_includes`.
+        forced = [decade_pid(p, decade, franchise)
+                  for p in roster_includes.get(f"{decade}_{franchise}", [])]
+        for fid in forced:
+            if fid in by_id.index and fid not in roster:
+                roster = [fid] + roster[:roster_size - 1]
         rosters[f"{decade}_{franchise}"] = roster
         pool_ids.update(roster)
         used_franchises.add(franchise)
