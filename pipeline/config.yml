@@ -23,6 +23,14 @@ montecarlo:
   p_reroll: 0.5              # per-spin probability a random player uses an available reroll
   # ability order is fixed and matches the six slots the game ships (data ratings keys)
   abilities: ["shooting", "scoring", "playmaking", "defense", "rebounding", "clutch"]
+  # ERA-FAIR OVR: each era's pool has a different achievable-total distribution, so the total
+  # that maps to a 99 OVR is derived PER ERA at the same rarity — the smallest total that
+  # ovr_anchor_pct% of that era's simulated runs stay under. 99.0 reproduces the tuned
+  # full-pool anchor (588, "a 99 is a real chase"). Era ids + decade tokens must match
+  # the app's ERAS (app/src/constants.js); a full extra simulation runs per era.
+  ovr_anchor_pct: 99.0
+  eras:
+    modern: ["2000s", "2010s", "2020s"]
 
 # NOTE: the final score shown to players is a 2K-style OVERALL rating (0-99) computed in the
 # app from the six picked attributes (see app/src/ui/helpers.js computeOvr) — the pipeline

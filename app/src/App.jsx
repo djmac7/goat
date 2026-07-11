@@ -6,7 +6,7 @@ import { makeDealer, randomSeed } from './game/rng.js'
 import { seedForDate, dayNumber, todayStr, isDateStr } from './game/daily.js'
 import { saveDaily, getDaily, getStats } from './game/storage.js'
 import { ratingSquares } from './ui/share.js'
-import { computeOvr } from './ui/helpers.js'
+import { computeOvr, setOvrAnchor } from './ui/helpers.js'
 import { DAILY_ENABLED, PLAYERS_ENABLED } from './config.js'
 import ModeBar from './ui/ModeBar.jsx'
 import HowToPlay from './ui/HowToPlay.jsx'
@@ -134,6 +134,10 @@ function Shell({ game }) {
     () => filterGameByEra(game, ERAS.find((e) => e.id === activeEra)?.seasons),
     [game, activeEra]
   )
+  // Era-fair OVR: apply the active era's 99-anchor (from the per-era Monte Carlo) before
+  // any child computes an OVR. Synchronous on purpose — an effect would let the first
+  // render score with the previous era's curve.
+  setOvrAnchor(game.ovrAnchors?.[activeEra])
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [settings, updateSettings] = useSettings()
 

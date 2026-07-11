@@ -40,7 +40,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import common  # noqa: E402
 
 
-def _build_pool(data: dict, abilities: list[str]):
+def _build_pool(data: dict, abilities: list[str], seasons=None):
     """Flatten goat-data into fast lookup structures for the grid.
 
     Returns (cells, by_season, by_franchise) where:
@@ -48,6 +48,10 @@ def _build_pool(data: dict, abilities: list[str]):
       by_season[season]   = [franchise, ...] with a legal cell that season,
       by_franchise[fr]     = [season, ...]    with a legal cell for that franchise.
     Cell key is "SEASON_FRANCHISE" exactly as the app uses it.
+
+    `seasons` (a set of time-axis tokens, e.g. {"2000s","2010s","2020s"}) restricts the
+    grid to an ERA — the exact filter the app's filterGameByEra applies, so the simulated
+    distribution matches what that era's players can actually draw.
     """
     ratings_by_id = {p["id"]: tuple(int(p["ratings"][a]) for a in abilities) for p in data["players"]}
     pool = data["pool"]
@@ -56,6 +60,8 @@ def _build_pool(data: dict, abilities: list[str]):
         # the time-axis token is OPAQUE: an int season ("1996") or a decade label
         # ("1990s") depending on pool_grain — never parsed, only used as a grouping key.
         season, fr = key.split("_", 1)
+        if seasons is not None and season not in seasons:
+            continue
         cells[key] = [(pid, ratings_by_id[pid]) for pid in roster]
         by_season.setdefault(season, []).append(fr)
         by_franchise.setdefault(fr, []).append(season)
@@ -113,9 +119,9 @@ def _play_once(rng, cells, keys, by_season, by_franchise, p_reroll):
     return total
 
 
-def build_table(data: dict, mc: dict) -> dict:
+def build_table(data: dict, mc: dict, seasons=None) -> dict:
     abilities = mc["abilities"]
-    cells, by_season, by_franchise = _build_pool(data, abilities)
+    cells, by_season, by_franchise = _build_pool(data, abilities, seasons)
     keys = list(cells.keys())
     rng = random.Random(mc["seed"])
     n = int(mc["n_sims"])
@@ -129,10 +135,16 @@ def build_table(data: dict, mc: dict) -> dict:
         lo, hi = min(lo, s), max(hi, s)
 
     ceiling_total = int(data["ceiling"]["total"])
-    table, cum = [], 0
+    anchor_pct = float(mc.get("ovr_anchor_pct", 98.2))
+    table, cum, anchor = [], 0, None
     for s in range(lo, ceiling_total + 1):
         cum += counts.get(s, 0)
-        table.append([s, round(100.0 * cum / n, 2)])
+        pct = 100.0 * cum / n
+        table.append([s, round(pct, 2)])
+        # era-fair 99-anchor: the smallest total that anchor_pct% of this pool's runs stay
+        # under — the same rarity of a 99 OVR whatever pool the game is being played on.
+        if anchor is None and pct >= anchor_pct:
+            anchor = s
 
     return {
         "min": lo,
@@ -140,6 +152,7 @@ def build_table(data: dict, mc: dict) -> dict:
         "n_sims": n,
         "seed": mc["seed"],
         "p_reroll": p_reroll,
+        "ovr_anchor": anchor if anchor is not None else ceiling_total,
         "table": table,
     }
 
@@ -156,6 +169,13 @@ def main():
           f"(seed={mc['seed']}, p_reroll={mc['p_reroll']}) over {n_cells} grid cells…")
     out = build_table(data, mc)
 
+    # per-era tables: the same simulation restricted to each era's cells, so the app can
+    # anchor a 99 OVR at the same rarity whatever pool the run was played on.
+    out["eras"] = {}
+    for era_id, seasons in (mc.get("eras") or {}).items():
+        print(f"[06] simulating era '{era_id}' ({', '.join(seasons)})…")
+        out["eras"][era_id] = build_table(data, mc, seasons=set(seasons))
+
     dest = common.repo_path(cfg["paths"]["percentile_out"])
     with open(dest, "w") as f:
         json.dump(out, f, separators=(",", ":"))
@@ -165,6 +185,8 @@ def main():
     median = next((s for s, p in tbl if p >= 50), out["min"])
     print(f"[06] scores ranged {out['min']}..{out['max']} (ceiling {out['max']}); "
           f"median random total ≈ {median}")
+    anchors = {"all": out["ovr_anchor"], **{k: v["ovr_anchor"] for k, v in out["eras"].items()}}
+    print(f"[06] 99-OVR anchors (@{mc.get('ovr_anchor_pct', 98.2)}th pct): {anchors}")
     print(f"[06] wrote {dest}  ({len(tbl)} rows)")
 
 

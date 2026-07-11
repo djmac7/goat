@@ -46,12 +46,21 @@ export function ratingTier(v) {
 // + a 97, say), which only a near-flawless roster reaches — and scales down from there.
 // Tuned to be demanding: a 99 now takes six 98/99-caliber picks, so most strong games land
 // in the low-90s and the GOAT tier is a genuine chase, not a given. Clamped to [40, 99].
-const OVR_ANCHOR_TOTAL = 588 // total that maps to a 99 OVR (near-max; 594 is a perfect 6x99)
-const OVR_LO_TOTAL = 470     // total that maps to OVR_LO
+// ERA-FAIR ANCHOR: the 99-total differs per pool (a Modern-only board draws from a
+// different distribution than the full pool), so the anchor is data-driven — the Monte
+// Carlo (pipeline 06) emits per-era anchors at a fixed rarity and the app applies the
+// active era's before rendering (see Shell). 588 is the tuned full-pool value and the
+// fallback for older/placeholder tables.
+const OVR_ANCHOR_DEFAULT = 588 // total that maps to a 99 OVR (near-max; 594 is a perfect 6x99)
+const OVR_LO_TOTAL = 470       // total that maps to OVR_LO
 const OVR_LO = 78
-const OVR_SLOPE = (99 - OVR_LO) / (OVR_ANCHOR_TOTAL - OVR_LO_TOTAL)
+let ovrAnchorTotal = OVR_ANCHOR_DEFAULT
+export function setOvrAnchor(total) {
+  ovrAnchorTotal = Number.isFinite(total) && total > OVR_LO_TOTAL ? total : OVR_ANCHOR_DEFAULT
+}
 export function computeOvr(total) {
-  return Math.max(40, Math.min(99, Math.round(99 - (OVR_ANCHOR_TOTAL - total) * OVR_SLOPE)))
+  const slope = (99 - OVR_LO) / (ovrAnchorTotal - OVR_LO_TOTAL)
+  return Math.max(40, Math.min(99, Math.round(99 - (ovrAnchorTotal - total) * slope)))
 }
 // A FLAWLESS board — every one of the six attributes a 99 — gets its own rainbow flourish
 // on the reveal slam and the share card (rarer than a 99 OVR, which the curve allows at ~588).

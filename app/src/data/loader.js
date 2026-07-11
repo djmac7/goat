@@ -106,6 +106,12 @@ export async function loadGameData() {
   const grid = buildPool(data.pool)
   const { getPercentile, scoreForPercentile } = makePercentile(pct)
 
+  // Era-fair OVR anchors from the Monte Carlo (06): the total that maps to a 99 OVR,
+  // derived per era at the same rarity. Keyed by era id ('all' + entries matching ERAS);
+  // absent on older/placeholder tables — computeOvr falls back to its built-in anchor.
+  const ovrAnchors = { all: pct.ovr_anchor }
+  for (const [era, t] of Object.entries(pct.eras || {})) ovrAnchors[era] = t.ovr_anchor
+
   return {
     source: SOURCE,
     meta: data.meta || {},
@@ -118,5 +124,6 @@ export async function loadGameData() {
     ceiling,
     getPercentile,
     scoreForPercentile,
+    ovrAnchors,
   }
 }
