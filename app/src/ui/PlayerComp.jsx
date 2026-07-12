@@ -12,7 +12,7 @@ export default function PlayerComp({ comp }) {
   const p = comp.player
   return (
     <div className="comp">
-      <div className="comp__kicker">Plays like</div>
+      <div className="comp__kicker">Your player plays like</div>
       <div className="comp__row">
         <Avatar name={p.name} src={playerPhotoUrl(p)} color="#c9ccd2" size={46} rounded={10} />
         <div className="comp__who">
@@ -21,9 +21,10 @@ export default function PlayerComp({ comp }) {
         </div>
         <div className="comp__match" style={{ '--match': matchColor(comp.match) }}>
           <span className="comp__pct">{comp.match}%</span>
-          <span className="comp__pct-label">match</span>
+          <span className="comp__pct-label">skill match</span>
         </div>
       </div>
+      <div className="comp__statcap">{p.name}’s per-game averages</div>
       <div className="comp__stats">
         {STAT_LINE.map((s) => (
           <div key={s.key} className="stat">

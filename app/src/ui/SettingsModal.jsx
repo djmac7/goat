@@ -53,15 +53,17 @@ export default function SettingsModal({ settings, update, onClose }) {
         </div>
 
         <div className="settings__section">About &amp; Legal</div>
-        {ABOUT_LINKS.map((l) => (
-          <button key={l.key} className="setting-row setting-link" onClick={() => setDoc(l.key)}>
-            <div className="setting-row__text">
-              <span className="setting-row__label">{l.label}</span>
-              <span className="setting-row__desc">{l.desc}</span>
-            </div>
-            <ChevronRight size={18} className="setting-link__chev" />
-          </button>
-        ))}
+        <div className="setting-links">
+          {ABOUT_LINKS.map((l) => (
+            <button key={l.key} className="setting-link" onClick={() => setDoc(l.key)}>
+              <div className="setting-row__text">
+                <span className="setting-row__label">{l.label}</span>
+                <span className="setting-row__desc">{l.desc}</span>
+              </div>
+              <ChevronRight size={18} className="setting-link__chev" />
+            </button>
+          ))}
+        </div>
 
         <button className="btn-primary" onClick={onClose}>Done</button>
       </div>

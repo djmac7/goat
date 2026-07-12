@@ -47,10 +47,11 @@ export function findComp(players, slots) {
   return { player: best, match }
 }
 
-// Color-code the match strength.
+// Color-code the match strength, drawn from the Hardwood/Claude palette (theme-aware tokens,
+// so the % stays legible on both themes and on the forced-light share card).
 export function matchColor(m) {
-  if (m >= 90) return '#0b7a3b' // green
-  if (m >= 80) return '#1971c2' // blue
-  if (m >= 70) return '#b8860b' // gold
-  return '#c23b3b' // red
+  if (m >= 90) return 'var(--good)'  // strong — green
+  if (m >= 80) return 'var(--slate)' // solid — slate
+  if (m >= 70) return 'var(--gold)'  // loose — gold
+  return 'var(--crit)'               // weak — red
 }

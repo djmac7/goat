@@ -51,7 +51,7 @@ describe('App render + interaction (real data via mocked fetch)', () => {
     expect(container.querySelector('.goat-card')).toBeTruthy()
     expect(screen.getByLabelText('Respin team')).toBeTruthy()
     expect(screen.getByLabelText('Respin decade')).toBeTruthy()
-    expect(screen.getByText(/SPIN 1/)).toBeTruthy()
+    expect(screen.getByText(/Spin 1/)).toBeTruthy()
   })
 
   it('Reroll Year re-spins only the year reel, then a forced pick locks a rating', async () => {
@@ -83,7 +83,7 @@ describe('App render + interaction (real data via mocked fetch)', () => {
     await waitFor(() => expect(container.querySelector('.slot.filled')).toBeTruthy())
     expect(container.querySelector('.slot.filled .slot__rating')).toBeNull()
     expect(container.querySelector('.goat-card__total')).toBeNull()
-    await waitFor(() => expect(screen.getByText(/SPIN 2/)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/Spin 2/)).toBeTruthy())
   })
 })
 

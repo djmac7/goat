@@ -64,7 +64,7 @@ export default function VersusShowdown({ game, slots, rivalRun, goal, ovr, revea
       </div>
       <div className="goat-card__total vsx-total">
         <span className={'goat-card__total-value tier-' + ratingTier(yourOvr)}>{yourOvr}</span>
-        <span className="goat-card__total-label">OVERALL</span>
+        <span className="goat-card__total-label">Overall</span>
         <span className={'goat-card__total-value tier-' + ratingTier(theirOvr)}>{theirOvr}</span>
       </div>
     </div>

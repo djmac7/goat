@@ -1,0 +1,130 @@
+/* AUTO-GENERATED — do not edit. Source of truth: hardwood-ds/tokens.css
+   Change tokens in hardwood-ds/tokens.css, then run `node sync.mjs`. */
+/* ============================================================
+   Hardwood — Claude-inspired design system · DESIGN TOKENS
+   ------------------------------------------------------------
+   Single source of truth. Consumed by:
+     • claude-nba  (Hardwood NBA reference — static site)
+     • six-spins   (daily NBA puzzle — Vite/React app)
+
+   Rules of the road:
+     • This file holds ONLY tokens (color, elevation, radius, type).
+       No component styles live here — apps own their components.
+     • Components must reference semantic tokens (var(--ink), …),
+       never raw hex, so the whole surface re-themes from here.
+     • Light and dark are designed in parallel. Both a media-query
+       default AND explicit [data-theme] hooks are provided so an
+       app can respect the OS or offer a manual toggle.
+     • Edit tokens HERE, then run `node sync.mjs` to propagate.
+   ============================================================ */
+
+:root {
+  /* ---- neutrals: warm paper foundation ---- */
+  --bg:        #FAF9F5;  /* app canvas */
+  --bg-sunk:   #F1EFE7;  /* recessed wells, page-behind-frame */
+  --panel:     #FFFFFF;  /* cards / surfaces */
+  --panel-2:   #F6F4EC;  /* inset surfaces (chips, rows) */
+  --line:      #E7E3D7;  /* default hairline */
+  --line-strong: #D6D1C2;/* emphasized border, inputs */
+  --line-soft: #EFEBDF;  /* faint internal divider */
+
+  /* ---- ink: text ramp, most→least prominent ---- */
+  --ink:   #1A1915;      /* primary text */
+  --ink-2: #5A564C;      /* secondary text */
+  --ink-3: #8D8877;      /* tertiary / captions */
+  --ink-4: #B4AF9F;      /* faint / disabled */
+
+  /* ---- brand: Claude coral ---- */
+  --accent:      #D97757; /* primary accent */
+  --accent-deep: #BF5D3B; /* hover / links / on-light emphasis */
+  --accent-soft: #F0D3C5; /* soft borders on accent surfaces */
+  --accent-wash: #FBEEE7; /* tinted background wash */
+
+  /* ---- extended hues (categorical / data) ---- */
+  --slate: #4E6E7E;
+  --gold:  #B98A32;
+  --moss:  #6C7A54;
+  --plum:  #8A5A6B;
+
+  /* ---- semantic status ---- */
+  --good:    #5C7A52;  --good-bg: #EEF2E7;
+  --warn:    #B98A32;
+  --crit:    #B4523A;  --crit-bg: #F7E9E4;
+
+  /* ---- elevation ---- */
+  --shadow-sm: 0 1px 2px rgba(26,25,19,.05);
+  --shadow:    0 1px 2px rgba(26,25,19,.04), 0 10px 30px rgba(26,25,19,.05);
+
+  /* ---- typography ---- */
+  --serif: "Fraunces", Georgia, serif;                                   /* display headings & big numerals */
+  --sans:  "Schibsted Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; /* body / UI */
+  --mono:  "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;      /* tabular data, eyebrows */
+
+  /* ---- geometry ---- */
+  --maxw: 1200px;
+  --rad:  14px;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:        #1F1E1C;
+    --bg-sunk:   #191817;
+    --panel:     #292825;
+    --panel-2:   #302F2B;
+    --line:      #3A3833;
+    --line-strong: #4A473F;
+    --line-soft: #332F2A;
+
+    --ink:   #F5F3EC;
+    --ink-2: #BAB6AA;
+    --ink-3: #847F72;
+    --ink-4: #605C52;
+
+    --accent:      #E08A63;
+    --accent-deep: #C96B44;
+    --accent-soft: #4A3A31;
+    --accent-wash: #332822;
+
+    --slate: #82A3B3;
+    --gold:  #D6AC5A;
+    --moss:  #93A277;
+    --plum:  #B5849A;
+
+    --good:  #8DAA80;  --good-bg: #2A3226;
+    --warn:  #D6AC5A;
+    --crit:  #D6795F;  --crit-bg: #3A2A25;
+
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.3);
+    --shadow:    0 1px 2px rgba(0,0,0,.25), 0 12px 34px rgba(0,0,0,.32);
+
+    color-scheme: dark;
+  }
+}
+
+/* Explicit manual-toggle hooks (win over the media query). Not :root-scoped, so an
+   app can also nest a [data-theme] island (e.g. a forced-light export card) inside a
+   differently-themed page and have it re-theme correctly. ---------------- */
+[data-theme="light"] {
+  --bg:#FAF9F5; --bg-sunk:#F1EFE7; --panel:#FFFFFF; --panel-2:#F6F4EC;
+  --line:#E7E3D7; --line-strong:#D6D1C2; --line-soft:#EFEBDF;
+  --ink:#1A1915; --ink-2:#5A564C; --ink-3:#8D8877; --ink-4:#B4AF9F;
+  --accent:#D97757; --accent-deep:#BF5D3B; --accent-soft:#F0D3C5; --accent-wash:#FBEEE7;
+  --slate:#4E6E7E; --gold:#B98A32; --moss:#6C7A54; --plum:#8A5A6B;
+  --good:#5C7A52; --good-bg:#EEF2E7; --warn:#B98A32; --crit:#B4523A; --crit-bg:#F7E9E4;
+  --shadow-sm:0 1px 2px rgba(26,25,19,.05);
+  --shadow:0 1px 2px rgba(26,25,19,.04), 0 10px 30px rgba(26,25,19,.05);
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  --bg:#1F1E1C; --bg-sunk:#191817; --panel:#292825; --panel-2:#302F2B;
+  --line:#3A3833; --line-strong:#4A473F; --line-soft:#332F2A;
+  --ink:#F5F3EC; --ink-2:#BAB6AA; --ink-3:#847F72; --ink-4:#605C52;
+  --accent:#E08A63; --accent-deep:#C96B44; --accent-soft:#4A3A31; --accent-wash:#332822;
+  --slate:#82A3B3; --gold:#D6AC5A; --moss:#93A277; --plum:#B5849A;
+  --good:#8DAA80; --good-bg:#2A3226; --warn:#D6AC5A; --crit:#D6795F; --crit-bg:#3A2A25;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3);
+  --shadow:0 1px 2px rgba(0,0,0,.25), 0 12px 34px rgba(0,0,0,.32);
+  color-scheme: dark;
+}

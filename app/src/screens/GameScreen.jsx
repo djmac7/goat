@@ -25,7 +25,7 @@ export default function GameScreen({ game, state, actions, canRerollTeam, canRer
       <div className="game-top">
         <div className="game-header">
           <div className="spin-counter">
-            <span className="spin-counter__now">SPIN {state.spinNumber}</span>
+            <span className="spin-counter__now">Spin {state.spinNumber}</span>
             <span className="spin-counter__of">of 6</span>
           </div>
           <div className="reroll-group">

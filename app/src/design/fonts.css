@@ -1,0 +1,12 @@
+/* AUTO-GENERATED — do not edit. Source of truth: hardwood-ds/fonts.css
+   Change tokens in hardwood-ds/fonts.css, then run `node sync.mjs`. */
+/* Hardwood DS — canonical typefaces.
+   Prefer the <link> form in your HTML <head> (non-blocking, faster):
+
+   <link rel="preconnect" href="https://fonts.googleapis.com" />
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Schibsted+Grotesk:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+   This @import is provided for build pipelines that would rather pull fonts
+   through CSS. It maps to --serif / --sans / --mono in tokens.css. */
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Schibsted+Grotesk:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap");
