@@ -22,9 +22,10 @@ export default function ResultScreen({
   const [shareOpen, setShareOpen] = useState(false)
 
   const meta = session && { mode: session.mode, date: session.date, dayNumber: session.dayNumber, seed: session.seed }
+  const pct = useMemo(() => game.getPercentile?.(total), [game, total])
   const shareMessage = useMemo(
-    () => buildShareText({ ovr, slots: state.slots, comp, meta, url: '' }),
-    [ovr, state.slots, comp, session]
+    () => buildShareText({ ovr, slots: state.slots, meta, url: '', pct }),
+    [ovr, state.slots, session, pct]
   )
   // Seed links carry your OVR + picks, so the recipient plays a 1v1 against THIS run —
   // a challenged player who shares onward sends their own lineup, not the one they beat.
@@ -73,7 +74,7 @@ export default function ResultScreen({
       {shareOpen && (
         <ShareModal
           game={game} state={state} comp={comp} tag={tag}
-          message={shareMessage} url={shareUrl} total={total}
+          message={shareMessage} url={shareUrl} total={total} ovr={ovr}
           onClose={() => setShareOpen(false)}
         />
       )}

@@ -84,7 +84,7 @@
           "name": "How do you play Six Spins?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Each spin deals you a random all-time NBA team-year roster. You steal one ability rating (Shooting, Scoring, Playmaking, Perimeter Defense, Interior Defense, or Rebounding) from a player on that board. After six spins you've filled all six abilities — your picks combine into an overall rating (OVR), and a perfect run builds a 99 OVR GOAT."
+            "text": "Each spin deals you a random all-time NBA team-year roster. You steal one ability rating (Shooting, Scoring, Playmaking, Defense, Rebounding, or Clutch) from a player on that board. After six spins you've filled all six abilities — your picks combine into an overall rating (OVR), and a perfect run builds a 99 OVR GOAT."
           }
         },
         {
@@ -116,9 +116,52 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Schibsted+Grotesk:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+    <!-- Above-the-fold content prerendered into #root: real crawlable HTML (H1 + pitch +
+         how-it-works) in the initial payload for a brand-new domain, doubling as the branded
+         loading state. React's createRoot() replaces #root on mount, so it vanishes the
+         instant the app is interactive (data is <link rel=preload>ed, so that's near-instant). -->
+    <style>
+      .pre{font-family:"Schibsted Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        max-width:640px;margin:0 auto;padding:56px 24px;text-align:center;color:#1A1915}
+      .pre__logo{font-size:40px;line-height:1;letter-spacing:-0.06em}
+      .pre h1{font-family:"Fraunces",Georgia,serif;font-weight:900;font-size:38px;line-height:1.05;
+        letter-spacing:-0.03em;margin:18px 0 12px}
+      .pre h1 b{color:#D97757;font-weight:900}
+      .pre__sub{font-size:18px;line-height:1.5;color:#5A564C;font-weight:500;margin:0 auto 26px;max-width:520px}
+      .pre__steps{list-style:none;margin:0 auto 26px;padding:0;display:flex;flex-direction:column;gap:10px;max-width:460px;text-align:left}
+      .pre__steps li{background:#F6F4EC;border-left:3px solid #D97757;border-radius:9px;padding:12px 16px;font-size:15px;color:#1A1915}
+      .pre__steps b{font-weight:800}
+      .pre__spinner{width:30px;height:30px;margin:8px auto 0;border-radius:50%;
+        border:3px solid #E7E3D7;border-top-color:#D97757;animation:pre-spin .7s linear infinite}
+      .pre__links{margin-top:22px;font-size:14px;color:#8D8877}
+      .pre__links a{color:#BF5D3B;font-weight:700;text-decoration:none}
+      @keyframes pre-spin{to{transform:rotate(360deg)}}
+      @media (prefers-color-scheme:dark){
+        .pre{color:#F5F3EC}.pre h1{color:#F5F3EC}.pre__sub{color:#BAB6AA}
+        .pre__steps li{background:#302F2B;color:#F5F3EC}.pre__links{color:#847F72}
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="pre">
+        <div class="pre__logo" aria-hidden="true">6️⃣🔄</div>
+        <h1>Six Spins — build the <b>NBA GOAT</b> in six spins</h1>
+        <p class="pre__sub">
+          A free daily NBA puzzle — like Wordle, but for basketball. Spin six random all-time
+          team-years, steal one rating from a star on each roster, and build a 99 OVR player
+          in about a minute a day.
+        </p>
+        <ol class="pre__steps">
+          <li><b>Spin</b> — land on a random all-time NBA roster (e.g. the ’96 Bulls).</li>
+          <li><b>Steal</b> — take one ability from one player: Shooting, Scoring, Playmaking, Defense, Rebounding, or Clutch.</li>
+          <li><b>Build</b> — fill all six abilities across six spins and chase a 99 OVR.</li>
+        </ol>
+        <div class="pre__spinner" role="status" aria-label="Loading the game"></div>
+        <p class="pre__links">Loading… &nbsp;·&nbsp; <a href="/how-to-play.html">How to play &amp; FAQ</a></p>
+      </div>
+    </div>
 
     <!-- RevIQ rail ad units: two stacked per side (…rail-1 over …rail-2), parked in
          the left/right gutters. RevIQ auto-detects [data-ad] and fills each slot.
@@ -137,8 +180,8 @@
       <p>
         Six Spins is a free daily NBA puzzle. Each day you spin six random team-years,
         steal one ability rating from a star on each board, and assemble your GOAT across
-        six abilities — Shooting, Scoring, Playmaking, Perimeter Defense, Interior Defense,
-        and Rebounding. Lock in all six, get a percentile score, and share your result.
+        six abilities — Shooting, Scoring, Playmaking, Defense, Rebounding, and Clutch.
+        Lock in all six, get an overall rating, and share your result.
         JavaScript is required to play.
       </p>
     </noscript>

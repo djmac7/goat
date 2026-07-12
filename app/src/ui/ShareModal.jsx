@@ -42,7 +42,7 @@ function BrandIcon({ name }) {
   )
 }
 
-export default function ShareModal({ game, state, comp, tag, message, url, total, onClose }) {
+export default function ShareModal({ game, state, comp, tag, message, url, total, ovr, onClose }) {
   const cardRef = useRef(null)
   const { saveImage, saving } = useShareActions(cardRef, message, `six-spins-${total}.png`)
   const [copied, setCopied] = useState(false)
@@ -69,8 +69,8 @@ export default function ShareModal({ game, state, comp, tag, message, url, total
       <div className="share-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Challenge a friend">
         <div className="share-modal__head">
           <div>
-            <h2 className="share-modal__title">Challenge a friend</h2>
-            <p className="share-modal__sub">Your link replays this exact run. See who can beat it.</p>
+            <h2 className="share-modal__title">{Number.isFinite(ovr) ? `Beat my ${ovr} OVR?` : 'Challenge a friend'}</h2>
+            <p className="share-modal__sub">Your link replays this exact board — same spins, same rosters. Send it and see who wins.</p>
           </div>
           <button className="share-modal__close" onClick={onClose} aria-label="Close"><X size={18} /></button>
         </div>

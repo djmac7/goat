@@ -83,15 +83,21 @@ export function shareLink(meta, goal, slots, game) {
   return base
 }
 
-// One plain sentence + the squares + the dare. The link replays THIS run (same six spins,
-// same rosters), so the share reads as a direct head-to-head, not a scoreboard flex.
-export function buildShareText({ ovr, slots, meta, url }) {
-  const where = meta?.mode === 'daily' && meta.dayNumber != null ? `today's Six Spins (Daily #${meta.dayNumber})` : 'Six Spins'
+// One plain sentence + a social-proof flex + the squares + the head-to-head dare. The link
+// replays THIS run (same six spins, same rosters), so the share reads as a direct 1v1 — and
+// the CTA names the exact number to beat ("beat my 94 OVR"), which is the loop's hook.
+// `pct` (0-100 percentile of the score) drives the flex line when the build is strong enough
+// to brag about; a weak build just omits it rather than discouraging a reshare.
+export function buildShareText({ ovr, slots, meta, url, pct }) {
+  const daily = meta?.mode === 'daily' && meta.dayNumber != null
+  const where = daily ? `today's Six Spins (Daily #${meta.dayNumber})` : 'Six Spins'
   const link = url != null ? url : shareLink(meta)
+  const topPct = Number.isFinite(pct) ? Math.max(1, Math.round(100 - pct)) : null
+  const flex = topPct != null && pct >= 50 ? ` — top ${topPct}%${daily ? ' today' : ''} 🔥` : ''
   const lines = [
-    `I built a ${ovr} OVR NBA player on ${where} 🏀`,
+    `I built a ${ovr} OVR NBA player on ${where} 🏀${flex}`,
     `${ratingSquares(slots)}`,
-    link ? `Can you beat my score? ${link}` : 'Can you beat my score?',
+    link ? `Can you beat my ${ovr} OVR? ${link}` : `Can you beat my ${ovr} OVR?`,
   ]
   return lines.join('\n')
 }

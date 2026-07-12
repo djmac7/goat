@@ -35,8 +35,16 @@ describe('buildShareText', () => {
   it('carries its own URL so the share is a distribution vector', () => {
     expect(text).toContain('https://x.io/six/')
   })
-  it('ends on the competitive dare (the hook that earns the tap)', () => {
-    expect(text).toContain('Can you beat my score?')
+  it('ends on the competitive dare naming the exact OVR to beat (the head-to-head hook)', () => {
+    expect(text).toContain('Can you beat my 94 OVR?')
+  })
+  it('adds a top-percent social-proof flex when the build is strong', () => {
+    const strong = buildShareText({ ovr: 94, slots, pct: 97, url: 'https://x.io/six/' })
+    expect(strong).toContain('top 3%')
+  })
+  it('omits the flex on a weak build rather than discouraging a reshare', () => {
+    const weak = buildShareText({ ovr: 70, slots, pct: 20, url: 'https://x.io/six/' })
+    expect(weak).not.toMatch(/top \d+%/)
   })
 })
 
