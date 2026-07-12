@@ -457,9 +457,13 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .pcard__id { grid-area: id; align-self: center; min-width: 0; }
 .pcard__name { font-weight: 800; font-size: 15px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pcard__meta { font-size: 11px; color: var(--muted); font-weight: 600; }
-.pcard__stats { grid-area: stats; display: grid; grid-template-columns: repeat(5, 1fr); justify-items: center; border-top: 1px solid var(--border); padding: 8px 2px 2px; }
-.stat { display: flex; flex-direction: column; align-items: center; padding-left: 4px; width: 40px; }
-.stat__v { font-size: 16px; font-weight: 800; color: var(--text); line-height: 1.05; letter-spacing: -0.03em; }
+.pcard__stats { grid-area: stats; display: grid; grid-template-columns: repeat(5, 1fr); justify-items: center; column-gap: 8px; border-top: 1px solid var(--border); padding: 8px 2px 2px; }
+/* auto-width, min-width:0 + a column gap so wide values (e.g. "22.2" next to "11.2") never
+   collide into "22.211.2"; the fixed 40px box used to overflow and merge adjacent numbers */
+.stat { display: flex; flex-direction: column; align-items: center; min-width: 0; }
+/* lighter than the old 800/-0.03em: a full row of big bold numbers read as a wall — 700 with
+   neutral tracking (tabular figures from the block above) is far more scannable */
+.stat__v { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.05; letter-spacing: 0; white-space: nowrap; }
 .stat__k { font-size: 9px; font-weight: 700; letter-spacing: 0.05em; color: var(--muted); margin-top: 2px; }
 .pcard__used { position: absolute; top: 10px; right: 12px; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: var(--accent-dim); background: color-mix(in srgb, var(--accent) 14%, var(--surface)); border-radius: 4px; padding: 3px 6px; }
 
@@ -473,7 +477,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .sheet__head-id { min-width: 0; flex: 1; }
 .sheet__name { font-weight: 800; font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sheet__sub { font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sheet__statline { display: grid; grid-template-columns: repeat(5, 1fr); justify-items: center; padding: 12px 6px; background: var(--surface2); border-radius: 8px; margin-bottom: 14px; }
+.sheet__statline { display: grid; grid-template-columns: repeat(5, 1fr); justify-items: center; column-gap: 8px; padding: 12px 6px; background: var(--surface2); border-radius: 8px; margin-bottom: 14px; }
 .sheet__prompt { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: var(--muted); margin: 0 2px 8px; }
 .sheet__options { display: flex; flex-direction: column; gap: 8px; }
 .opt { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 9px; background: var(--surface); border: 1px solid var(--border-strong); color: var(--text); cursor: pointer; font-family: inherit; }
