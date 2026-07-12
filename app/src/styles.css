@@ -461,9 +461,10 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 /* auto-width, min-width:0 + a column gap so wide values (e.g. "22.2" next to "11.2") never
    collide into "22.211.2"; the fixed 40px box used to overflow and merge adjacent numbers */
 .stat { display: flex; flex-direction: column; align-items: center; min-width: 0; }
-/* lighter than the old 800/-0.03em: a full row of big bold numbers read as a wall — 700 with
-   neutral tracking (tabular figures from the block above) is far more scannable */
-.stat__v { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.05; letter-spacing: 0; white-space: nowrap; }
+/* Geist Mono (the design system's tabular-data face): monospaced digits are evenly spaced
+   and non-decorative, so a row of stats reads as clean columns instead of a wall of wide,
+   quirky Schibsted figures. Fixed-advance glyphs also align perfectly without extra tracking. */
+.stat__v { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.05; letter-spacing: -0.02em; white-space: nowrap; }
 .stat__k { font-size: 9px; font-weight: 700; letter-spacing: 0.05em; color: var(--muted); margin-top: 2px; }
 .pcard__used { position: absolute; top: 10px; right: 12px; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: var(--accent-dim); background: color-mix(in srgb, var(--accent) 14%, var(--surface)); border-radius: 4px; padding: 3px 6px; }
 
