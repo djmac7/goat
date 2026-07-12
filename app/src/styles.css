@@ -461,14 +461,13 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 /* auto-width, min-width:0 + a column gap so wide values (e.g. "22.2" next to "11.2") never
    collide into "22.211.2"; the fixed 40px box used to overflow and merge adjacent numbers */
 .stat { display: flex; flex-direction: column; align-items: center; min-width: 0; }
-/* Sans (Schibsted Grotesk) with TABULAR figures (from the block above) so every digit has
-   the same advance — the values still line up in clean columns, just in the app's normal
-   body face rather than the mono. */
-.stat__v { font-family: var(--sans); font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.05; letter-spacing: -0.01em; white-space: nowrap; }
+/* Geist Mono (the design system's tabular-data face): fixed-advance digits align into clean
+   columns and read as data. Bolded (700) for presence; the sorted column goes heavier still. */
+.stat__v { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.05; letter-spacing: 0.01em; white-space: nowrap; }
 .stat__k { font-size: 9px; font-weight: 700; letter-spacing: 0.05em; color: var(--muted); margin-top: 2px; }
 /* emphasize the column being sorted on (matches the active Sort chip) so the eye lands on the
    ranked stat: heavier value + accent-tinted label */
-.stat.active .stat__v { font-weight: 700; }
+.stat.active .stat__v { font-weight: 800; }
 .stat.active .stat__k { color: var(--accent-dim); font-weight: 800; }
 .pcard__used { position: absolute; top: 10px; right: 12px; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: var(--accent-dim); background: color-mix(in srgb, var(--accent) 14%, var(--surface)); border-radius: 4px; padding: 3px 6px; }
 
