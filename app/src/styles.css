@@ -464,7 +464,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 /* Geist Mono (the design system's tabular-data face): monospaced digits are evenly spaced
    and non-decorative, so a row of stats reads as clean columns instead of a wall of wide,
    quirky Schibsted figures. Fixed-advance glyphs also align perfectly without extra tracking. */
-.stat__v { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.05; letter-spacing: -0.02em; white-space: nowrap; }
+.stat__v { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.05; letter-spacing: 0.01em; white-space: nowrap; }
 .stat__k { font-size: 9px; font-weight: 700; letter-spacing: 0.05em; color: var(--muted); margin-top: 2px; }
 .pcard__used { position: absolute; top: 10px; right: 12px; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: var(--accent-dim); background: color-mix(in srgb, var(--accent) 14%, var(--surface)); border-radius: 4px; padding: 3px 6px; }
 
@@ -1139,7 +1139,11 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   /* roster fills the column; only roster__list scrolls (keeps the team/year card pinned) */
   .pcard { grid-template-columns: auto 1fr auto; grid-template-areas: "ava id stats"; align-items: center; gap: 14px; }
   .pcard--blind { grid-template-columns: auto 1fr; grid-template-areas: "ava id"; }
-  .pcard__stats { border-top: none; padding-top: 0; max-width: 320px; }
+  /* FIXED column widths so the block is a constant size (columns land in the SAME place on
+     every row — an auto/1fr block drifted with the value widths, "10.3" vs "9.7", reading as
+     inconsistent) while staying only as wide as it needs — the name keeps its room, no
+     truncation, and the numbers sit closer together instead of floating apart. */
+  .pcard__stats { border-top: none; padding-top: 0; grid-template-columns: repeat(5, 38px); max-width: none; column-gap: 4px; }
 
   .reel-window { max-width: 440px; }
   .tyreel { max-width: 460px; }
