@@ -211,9 +211,16 @@ body {
    would have reserved — the board then fills the frame instead of being squeezed/cut off. */
 html[data-embed] .ad-rail,
 html[data-embed] .ad-video { display: none !important; }
+/* Without ad rails there's no reason to reserve the outer gutters: let the app fill the
+   full width of the host frame. The layout (top bar + game board) uses 100%; the end-of-game
+   result/reveal cards stay capped and centered so they don't stretch across a wide frame. */
+html[data-embed] .app-frame,
+html[data-embed] .modebar__inner { max-width: none; }
 @media (min-width: 860px) {
   /* base rule reserves 84px for the anchor ad that never renders here — trim to a small gutter */
-  html[data-embed] .game-screen { padding-bottom: 24px; }
+  html[data-embed] .game-screen { padding-bottom: 24px; max-width: none; }
+  html[data-embed] .result-screen,
+  html[data-embed] .reveal-screen { max-width: var(--frame); margin-inline: auto; width: 100%; }
 }
 @keyframes fade-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
 
