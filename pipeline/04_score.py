@@ -24,7 +24,7 @@ RATINGS = ["shooting", "scoring", "playmaking",
 # components ranked WITHIN season regardless of their rating's era mode: playoff PPG is a
 # volume stat in a pace-inflated context, so a season's playoff scoring leader rates elite
 # in any era (mirrors why the whole `scoring` rating is era-relative).
-ERA_REL_COMPONENTS = {("clutch", "po_pts")}
+ERA_REL_COMPONENTS = {("clutch", "po_pts"), ("clutch", "clutch_time")}
 
 
 def _accolade_ds(cfg: dict) -> dict:
@@ -133,6 +133,7 @@ def component_values(df: pd.DataFrame, cfg: dict) -> dict:
         # Playoff columns are merged from 01b_playoffs (NaN for no-playoff seasons — the
         # composite renormalizes onto clutch_accolade's neutral zero_rank: honest unknown).
         "clutch": {
+            "clutch_time": num("ct_pts"),            # crunch-time playoff scoring (01d) — LIFT-ONLY arm
             "po_pts": num("po_ppg"),                 # playoff PPG (era-relative — see ERA_REL_COMPONENTS)
             "po_depth": num("po_g"),                 # playoff games (deep runs vs better opposition)
             "po_retention": num("po_ts") - num("ts_percent"),  # rise vs shrink in the playoffs
@@ -211,6 +212,21 @@ def main():
         df.loc[pd.to_numeric(df["season"], errors="coerce") < cov, "gw_score"] = np.nan
     else:
         df["gw_score"] = np.nan
+
+    # clutch-TIME scoring for CLUTCH (01d_clutch_time): trailing-weighted points in the last
+    # 5:00 of tight playoff games. Same PBP coverage as game-winners — a 1997+ season with no
+    # clutch-time bucket is a real 0 (ranks low); pre-1997 stays NaN and renormalizes away.
+    ct_path = work_path(cfg, "clutch_time.parquet")
+    if cfg.get("clutch", {}).get("enabled") and os.path.exists(ct_path):
+        ct = pd.read_parquet(ct_path)[["player_id", "season", "ct_pts", "ct_g"]]
+        df = df.merge(ct, on=["player_id", "season"], how="left")
+        df["ct_pts"] = pd.to_numeric(df["ct_pts"], errors="coerce").fillna(0.0)
+        df["ct_g"] = pd.to_numeric(df["ct_g"], errors="coerce").fillna(0.0)
+        cov = int(cfg.get("clutch", {}).get("gw_coverage_start", 1997))
+        df.loc[pd.to_numeric(df["season"], errors="coerce") < cov, "ct_pts"] = np.nan
+    else:
+        df["ct_pts"] = np.nan
+        df["ct_g"] = 0.0
 
     comps = component_values(df, cfg)
 
@@ -300,7 +316,15 @@ def main():
             crown = float((cfg.get("clutch") or {}).get("gw_crown_count", 3.0))
             gw_strength = np.clip(df["gw_po"].to_numpy() / crown, 0.0, 1.0)
             gw_gated = rank_df["clutch_shots"].to_numpy() * gw_strength
-            clutch_best = np.fmax(box, gw_gated)                  # NaN-tolerant
+            # LIFT-ONLY clutch-time arm (01d): a third archetype — pouring in points in the
+            # closing minutes of tight playoff games. fmax so it only RAISES a proven crunch-time
+            # scorer (Dirk 2011, Wade 2006) and never drags the box/game-winner archetypes; NaN
+            # pre-1997 (no PBP) is ignored by fmax. GATED by clutch-window sample (ct_g) so a
+            # 1-2 game hot streak scales down and falls back to the box, like the game-winner arm.
+            ct_full = float((cfg.get("clutch") or {}).get("ct_full_games", 6.0))
+            ct_strength = np.clip(df["ct_g"].to_numpy() / ct_full, 0.0, 1.0)
+            ct_gated = rank_df["clutch_time"].to_numpy() * ct_strength
+            clutch_best = np.fmax(np.fmax(box, gw_gated), ct_gated)   # NaN-tolerant
             rank_df["clutch_best"] = clutch_best
             df["_rk_clutch_box"] = box
             ranks = {"clutch_accolade": ranks["clutch_accolade"], "clutch_best": clutch_best}

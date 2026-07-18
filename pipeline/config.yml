@@ -302,6 +302,20 @@ clutch:
                              # fall back to the player's playoff box (trims Nazr Mohammed / Cliff Robinson)
   gw_min_match_rate: 0.90    # soft floor on the game-winner id-join (pre-1997 has no PBP, so it's
                              # a bonus signal, not a hard build gate like the playoff-volume join)
+  # clutch-TIME scoring (01d): points in the NBA-official clutch window (last 5:00 of Q4/OT, score
+  # within 5) of PLAYOFF games, with tied/behind scoring weighted far above frontrunning — so a
+  # comeback closer (Dirk 2011, Wade 2006) outranks a lead-padder. Wired LIFT-ONLY: it's a third
+  # fmax arm of clutch_best (alongside the playoff-box and game-winner arms), so it can only RAISE
+  # a proven crunch-time scorer, never drag anyone. Same 1997+ PBP coverage as gw.
+  ct_window_secs: 300        # last 5:00 of the 4th quarter or any overtime
+  ct_margin: 5               # "within 5" — a genuinely close game
+  ct_trailing_weight: 1.0    # points scored while TIED OR BEHIND (the clutch case) — full credit
+  ct_leading_weight: 0.25    # points scored while AHEAD — heavily discounted (frontrunning != clutch)
+  ct_min_match_rate: 0.90    # soft floor on the clutch-time id-join (a bonus signal, like gw)
+  ct_full_games: 6           # clutch-window playoff GAMES in a season for FULL clutch-time credit;
+                             # the arm scales by min(1, ct_g/this), so a 1-2 game hot streak (Will
+                             # Barton, Daniel Theis) can't crown a role player — it falls back to the
+                             # box via fmax. A real deep run of tight games clears it easily.
   smooth:                    # a ring's aura persists a few seasons
     window: 3
     decay: 0.7
