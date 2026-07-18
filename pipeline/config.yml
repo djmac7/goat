@@ -2,7 +2,7 @@
 # Spec: build-the-goat-data-scoring-spec.md  §10
 
 source: "basketball-reference via kaggle:sumitrodatta/nba-aba-baa-stats"
-snapshot: "2025-04"            # date/version of the pinned raw CSV download
+snapshot: "2026-06"            # date/version of the pinned raw CSV download
 snapshot2: "2026-06"           # date/version of the pinned box-score (raw2) download
 
 paths:
