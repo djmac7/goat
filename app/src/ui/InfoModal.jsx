@@ -24,13 +24,21 @@ const DOCS = {
           of the Year, All-Star, and Finals MVP voting, because some skills (point-of-attack
           defense, clutch shot-making) barely show up in a box score.
         </p>
-        <h3>How each attribute is built</h3>
+        <h3>How the math works</h3>
         <ul>
           <li>Each attribute is a <b>weighted blend</b> of the stats most relevant to it.</li>
           <li>Rates are <b>era-adjusted</b> and <b>shrunk toward the league average</b> when the sample is small, so a hot 200-minute stretch doesn't outrank a full season.</li>
-          <li><b>Defense</b> merges perimeter and interior impact and leans on All-Defensive/DPOY recognition for what the box score misses.</li>
-          <li><b>Clutch</b> is built from playoff production (scoring, depth of runs, how efficiency holds up in the postseason) plus Finals-MVP and Clutch-Player recognition.</li>
-          <li>Your card shows a player's <b>peak</b> for that team and decade, ranked against the whole modern NBA (1960s to present).</li>
+          <li>Every player is <b>ranked against the whole modern NBA</b>, then reshaped so that elite ratings stay rare, and finally placed on a 2K-style <b>55–99</b> scale.</li>
+          <li>Your card shows a player's <b>peak</b> for that team and decade (1960s to present).</li>
+        </ul>
+        <h3>What drives each attribute</h3>
+        <ul>
+          <li><b>Shooting</b> — efficiency-led: 3-point and free-throw make rates lead, with a nod to 3-point volume. Non-shooters are judged on free-throw touch and a <i>measured</i> mid-range jumper (never blanket 2P%, so dunkers get no phantom credit) and can't be rated as elite shooters.</li>
+          <li><b>Scoring</b> — volume-led and <b>era-relative</b>: points per game leads, so a season's scoring leader rates elite in any era, tempered by real true-shooting efficiency and topped off with MVP/All-NBA and scoring-title recognition.</li>
+          <li><b>Playmaking</b> — creation-led: assist volume and rate, plus a bonus for creating <i>while</i> carrying a scoring load (LeBron, Luka, Harden), and usage-fair ball security (assists vs. turnovers).</li>
+          <li><b>Defense</b> — merges perimeter (steals, ball pressure) and interior (blocks, rim protection) and takes the player's <i>best</i> of the two, then leans on All-Defensive/DPOY recognition for what the box score misses.</li>
+          <li><b>Rebounding</b> — rebound rate leads, with per-game volume added so high-minute anchors aren't outranked by low-minute rate compilers.</li>
+          <li><b>Clutch</b> — the best of three postseason cases: a sustained playoff body of work, go-ahead game-winners, and scoring in the final tight minutes — lifted (never dragged) by Finals-MVP and Clutch-Player recognition.</li>
         </ul>
         <h3>The honest disclaimer</h3>
         <p>
